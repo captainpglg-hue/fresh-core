@@ -13,4 +13,5 @@ export const Colors = {
   textSecondary: '#6C757D',
   white: '#FFFFFF',
   black: '#000000',
+  border: '#DEE2E6',
 };

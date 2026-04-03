@@ -1,56 +1,51 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Camera } from 'expo-camera';
+import { useState, useCallback } from 'react';
+import { extractTemperature } from '../services/ocr';
 
-interface UseCameraState {
-  hasPermission: boolean | null;
-  isReady: boolean;
+interface OCRResult {
+  value: number;
+  confidence: number;
+  rawText: string;
 }
 
-export const useCamera = () => {
-  const [state, setState] = useState<UseCameraState>({
-    hasPermission: null,
-    isReady: false,
-  });
+interface UseCameraReturn {
+  isProcessing: boolean;
+  lastPhotoUri: string | null;
+  ocrResult: OCRResult | null;
+  processOCR: (imageUri: string) => Promise<void>;
+  resetCamera: () => void;
+}
 
-  useEffect(() => {
-    let isMounted = true;
+export function useCamera(): UseCameraReturn {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [lastPhotoUri, setLastPhotoUri] = useState<string | null>(null);
+  const [ocrResult, setOcrResult] = useState<OCRResult | null>(null);
 
-    const checkPermission = async () => {
-      try {
-        const { status } = await Camera.getCameraPermissionsAsync();
-        if (isMounted) {
-          const granted = status === 'granted';
-          setState({ hasPermission: granted, isReady: granted });
-        }
-      } catch {
-        if (isMounted) {
-          setState({ hasPermission: false, isReady: false });
-        }
-      }
-    };
+  const processOCR = useCallback(async (imageUri: string): Promise<void> => {
+    setIsProcessing(true);
+    setLastPhotoUri(imageUri);
+    setOcrResult(null);
 
-    checkPermission();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const requestPermission = useCallback(async (): Promise<boolean> => {
     try {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      const granted = status === 'granted';
-      setState({ hasPermission: granted, isReady: granted });
-      return granted;
+      const result = await extractTemperature(imageUri);
+      setOcrResult(result);
     } catch {
-      setState({ hasPermission: false, isReady: false });
-      return false;
+      setOcrResult(null);
+    } finally {
+      setIsProcessing(false);
     }
   }, []);
 
+  const resetCamera = useCallback(() => {
+    setIsProcessing(false);
+    setLastPhotoUri(null);
+    setOcrResult(null);
+  }, []);
+
   return {
-    hasPermission: state.hasPermission,
-    isReady: state.isReady,
-    requestPermission,
+    isProcessing,
+    lastPhotoUri,
+    ocrResult,
+    processOCR,
+    resetCamera,
   };
-};
+}

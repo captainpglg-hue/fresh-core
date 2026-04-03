@@ -25,6 +25,7 @@ import { Button } from '../../src/components/ui/Button';
 import { Input } from '../../src/components/ui/Input';
 import { Header } from '../../src/components/ui/Header';
 import { IconButton } from '../../src/components/ui/IconButton';
+import { ProgressCircle } from '../../src/components/ui/ProgressCircle';
 import { Colors } from '../../src/constants/colors';
 import { useTemperatureStore } from '../../src/stores/temperatureStore';
 import { useAuthStore } from '../../src/stores/authStore';
@@ -34,9 +35,9 @@ import type { Equipment, TemperatureReading } from '../../src/types/database';
 type EquipmentType = Equipment['type'];
 
 const EQUIPMENT_TYPES: { value: EquipmentType; label: string }[] = [
-  { value: 'cold_positive', label: 'Frigo positif' },
+  { value: 'cold_positive', label: 'Chambre froide positive' },
+  { value: 'cold_negative', label: 'Chambre froide negative' },
   { value: 'cold_positive_veg', label: 'Frigo legumes' },
-  { value: 'cold_negative', label: 'Congelateur' },
   { value: 'cold_room', label: 'Chambre froide' },
   { value: 'display_case', label: 'Vitrine refrigeree' },
   { value: 'hot_holding', label: 'Maintien chaud' },
@@ -70,7 +71,7 @@ function getThresholdDisplay(type: EquipmentType): string {
   const threshold = THRESHOLDS[type];
   if (!threshold) return '';
   if (threshold.min !== undefined && threshold.max !== undefined) {
-    return `${threshold.min}°C - ${threshold.max}°C`;
+    return `Min ${threshold.min}°C / Max ${threshold.max}°C`;
   }
   if (threshold.max !== undefined) return `Max ${threshold.max}°C`;
   if (threshold.min !== undefined) return `Min ${threshold.min}°C`;
@@ -93,7 +94,7 @@ export default function TemperaturesScreen() {
     getReadingsForDate,
   } = useTemperatureStore();
 
-  const [modalVisible, setModalVisible] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [newName, setNewName] = useState('');
   const [newLocation, setNewLocation] = useState('');
   const [selectedTypeIndex, setSelectedTypeIndex] = useState(0);
@@ -113,14 +114,23 @@ export default function TemperaturesScreen() {
     const eqReadings = readings.filter(
       (r) => r.equipment_id === eq.id && r.recorded_at.startsWith(todayStr),
     );
-    const lastReading = eqReadings.length > 0
-      ? eqReadings.sort(
-          (a, b) =>
-            new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime(),
-        )[0]
-      : null;
+    const lastReading =
+      eqReadings.length > 0
+        ? eqReadings.sort(
+            (a, b) =>
+              new Date(b.recorded_at).getTime() -
+              new Date(a.recorded_at).getTime(),
+          )[0]
+        : null;
     return { equipment: eq, lastReading };
   });
+
+  const completedCount = equipmentWithReadings.filter(
+    (e) => e.lastReading,
+  ).length;
+  const totalCount = equipment.length;
+  const completionPercent =
+    totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   const handleAddEquipment = useCallback(async () => {
     if (!newName.trim() || !establishment?.id) return;
@@ -143,7 +153,7 @@ export default function TemperaturesScreen() {
       setNewName('');
       setNewLocation('');
       setSelectedTypeIndex(0);
-      setModalVisible(false);
+      setShowAddModal(false);
     } finally {
       setSaving(false);
     }
@@ -156,8 +166,15 @@ export default function TemperaturesScreen() {
   ]);
 
   const handleEquipmentPress = useCallback(
-    (equipmentId: string) => {
-      router.push(`/temperature/${equipmentId}` as never);
+    (eq: Equipment) => {
+      router.push({
+        pathname: '/temperature/releve',
+        params: {
+          equipmentId: eq.id,
+          name: eq.name,
+          type: eq.type,
+        },
+      });
     },
     [router],
   );
@@ -165,11 +182,11 @@ export default function TemperaturesScreen() {
   const renderEquipmentCard = useCallback(
     ({ item }: { item: EquipmentWithReading }) => {
       const { equipment: eq, lastReading } = item;
-      const thresholdText = getThresholdDisplay(eq.type);
+      const typeLabel = getTypeLabel(eq.type);
 
       return (
         <Pressable
-          onPress={() => handleEquipmentPress(eq.id)}
+          onPress={() => handleEquipmentPress(eq)}
           style={({ pressed }) => [pressed && styles.pressed]}
         >
           <Card style={styles.equipmentCard}>
@@ -181,14 +198,9 @@ export default function TemperaturesScreen() {
               <View style={styles.equipmentInfo}>
                 <Text variant="h3">{eq.name}</Text>
                 <Text variant="caption" color={Colors.textSecondary}>
-                  {getTypeLabel(eq.type)}
+                  {typeLabel}
                   {eq.location ? ` — ${eq.location}` : ''}
                 </Text>
-                {thresholdText ? (
-                  <Text variant="caption" color={Colors.textSecondary}>
-                    Seuil : {thresholdText}
-                  </Text>
-                ) : null}
               </View>
 
               <View style={styles.equipmentRight}>
@@ -197,7 +209,9 @@ export default function TemperaturesScreen() {
                     <Text
                       variant="h2"
                       color={
-                        lastReading.is_compliant ? Colors.success : Colors.danger
+                        lastReading.is_compliant
+                          ? Colors.success
+                          : Colors.danger
                       }
                     >
                       {lastReading.temperature_value}°C
@@ -206,7 +220,9 @@ export default function TemperaturesScreen() {
                       {format(new Date(lastReading.recorded_at), 'HH:mm')}
                     </Text>
                     <Badge
-                      text={lastReading.is_compliant ? 'Conforme' : 'Non conforme'}
+                      text={
+                        lastReading.is_compliant ? 'Conforme' : 'Non conforme'
+                      }
                       variant={lastReading.is_compliant ? 'success' : 'danger'}
                     />
                   </>
@@ -222,19 +238,42 @@ export default function TemperaturesScreen() {
     [handleEquipmentPress],
   );
 
+  const selectedThresholdDisplay = getThresholdDisplay(
+    EQUIPMENT_TYPES[selectedTypeIndex].value,
+  );
+
   return (
     <View style={styles.container}>
-      <Header title="Temperatures" />
+      <Header title="Temperatures du jour" subtitle={displayDate} />
 
-      <View style={styles.dateBar}>
-        <Text variant="body" color={Colors.textSecondary} style={styles.dateText}>
-          {displayDate}
-        </Text>
-        <Text variant="caption" color={Colors.primary}>
-          {equipmentWithReadings.filter((e) => e.lastReading).length}/
-          {equipment.length} releves
-        </Text>
-      </View>
+      {/* Stats Card */}
+      <Card style={styles.statsCard}>
+        <View style={styles.statsRow}>
+          <View style={styles.statsTextCol}>
+            <Text variant="h2" color={Colors.primary}>
+              {completedCount}/{totalCount} releves effectues
+            </Text>
+            <Text variant="caption" color={Colors.textSecondary}>
+              {totalCount > 0
+                ? completedCount === totalCount
+                  ? 'Tous les releves sont a jour'
+                  : `${totalCount - completedCount} equipement(s) en attente`
+                : 'Ajoutez votre premier equipement'}
+            </Text>
+          </View>
+          <ProgressCircle
+            percent={completionPercent}
+            size={72}
+            color={
+              completionPercent === 100
+                ? Colors.success
+                : completionPercent >= 50
+                  ? Colors.primary
+                  : Colors.warning
+            }
+          />
+        </View>
+      </Card>
 
       <FlatList
         data={equipmentWithReadings}
@@ -249,22 +288,29 @@ export default function TemperaturesScreen() {
               color={Colors.textSecondary}
               style={styles.emptyText}
             >
-              Aucun equipement enregistre
+              Ajoutez votre premier equipement
             </Text>
             <Text
               variant="caption"
               color={Colors.textSecondary}
               style={styles.emptySubtext}
             >
-              Appuyez sur + pour ajouter un equipement
+              Appuyez sur + pour commencer a enregistrer vos temperatures
             </Text>
+            <View style={styles.emptyButtonSpacer} />
+            <Button
+              title="Ajouter un equipement"
+              onPress={() => setShowAddModal(true)}
+              variant="primary"
+              size="md"
+            />
           </View>
         }
       />
 
       {/* Floating Add Button */}
       <Pressable
-        onPress={() => setModalVisible(true)}
+        onPress={() => setShowAddModal(true)}
         style={({ pressed }) => [styles.fab, pressed && styles.fabPressed]}
       >
         <Plus size={28} color={Colors.white} />
@@ -272,10 +318,10 @@ export default function TemperaturesScreen() {
 
       {/* Add Equipment Modal */}
       <Modal
-        visible={modalVisible}
+        visible={showAddModal}
         animationType="slide"
         transparent
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={() => setShowAddModal(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -283,7 +329,7 @@ export default function TemperaturesScreen() {
               <Text variant="h2">Ajouter un equipement</Text>
               <IconButton
                 icon={<X size={24} color={Colors.textSecondary} />}
-                onPress={() => setModalVisible(false)}
+                onPress={() => setShowAddModal(false)}
               />
             </View>
 
@@ -292,7 +338,7 @@ export default function TemperaturesScreen() {
                 label="Nom de l'equipement"
                 value={newName}
                 onChangeText={setNewName}
-                placeholder="Ex: Frigo cuisine 1"
+                placeholder="Ex: Frigo cuisine"
                 icon={<Thermometer size={18} color={Colors.textSecondary} />}
               />
 
@@ -323,12 +369,11 @@ export default function TemperaturesScreen() {
                 ))}
               </View>
 
-              {/* Auto-filled thresholds */}
+              {/* Threshold display based on selected type */}
               <View style={styles.thresholdInfo}>
                 <Text variant="caption" color={Colors.textSecondary}>
-                  Seuils auto :{' '}
-                  {getThresholdDisplay(EQUIPMENT_TYPES[selectedTypeIndex].value) ||
-                    'Non defini'}
+                  Seuil :{' '}
+                  {selectedThresholdDisplay || 'Non defini pour ce type'}
                 </Text>
               </View>
 
@@ -345,10 +390,10 @@ export default function TemperaturesScreen() {
               <Button
                 title="Annuler"
                 variant="ghost"
-                onPress={() => setModalVisible(false)}
+                onPress={() => setShowAddModal(false)}
               />
               <Button
-                title="Enregistrer"
+                title="Ajouter cet equipement"
                 variant="primary"
                 onPress={handleAddEquipment}
                 loading={saving}
@@ -367,18 +412,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  dateBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: Colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: '#DEE2E6',
+  statsCard: {
+    margin: 16,
+    marginBottom: 0,
   },
-  dateText: {
-    textTransform: 'capitalize',
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  statsTextCol: {
+    flex: 1,
+    marginRight: 16,
+    gap: 4,
   },
   listContent: {
     padding: 16,
@@ -418,9 +464,14 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     marginTop: 12,
+    fontWeight: '600',
   },
   emptySubtext: {
     textAlign: 'center',
+    paddingHorizontal: 32,
+  },
+  emptyButtonSpacer: {
+    height: 16,
   },
   // FAB
   fab: {
@@ -430,14 +481,14 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 6,
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
   },
   fabPressed: {
     opacity: 0.85,
@@ -461,7 +512,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#DEE2E6',
+    borderBottomColor: Colors.border,
   },
   modalBody: {
     padding: 20,
@@ -472,7 +523,7 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: '#DEE2E6',
+    borderTopColor: Colors.border,
   },
   fieldLabel: {
     marginBottom: 8,
@@ -488,7 +539,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#DEE2E6',
+    borderColor: Colors.border,
     backgroundColor: Colors.white,
   },
   typeChipActive: {

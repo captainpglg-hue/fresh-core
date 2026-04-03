@@ -12,7 +12,9 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@react-native-community/datetimepicker": "^9.1.0",
     "@react-native-ml-kit/text-recognition": "^2.0.0",
+    "@react-native-picker/picker": "^2.11.4",
     "@supabase/supabase-js": "^2.101.1",
     "date-fns": "^4.1.0",
     "ethers": "^6.16.0",

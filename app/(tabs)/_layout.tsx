@@ -1,15 +1,11 @@
 import { Tabs } from 'expo-router';
 import { Colors } from '../../src/constants/colors';
 import {
-  Home,
+  House,
   Thermometer,
   Truck,
   SprayCan,
-  Flame,
-  Tag,
-  Droplet,
-  Bug,
-  Settings,
+  MoreHorizontal,
 } from 'lucide-react-native';
 
 export default function TabLayout() {
@@ -32,7 +28,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Accueil',
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <House size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -45,14 +41,14 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="deliveries"
+        name="receptions"
         options={{
           title: 'Receptions',
           tabBarIcon: ({ color, size }) => <Truck size={size} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="cleaning"
+        name="nettoyage"
         options={{
           title: 'Nettoyage',
           tabBarIcon: ({ color, size }) => (
@@ -61,42 +57,42 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="cooking"
+        name="plus"
         options={{
-          title: 'Cuisson',
-          tabBarIcon: ({ color, size }) => <Flame size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="traceability"
-        options={{
-          title: 'DLC',
-          tabBarIcon: ({ color, size }) => <Tag size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="oil"
-        options={{
-          title: 'Huiles',
+          title: 'Plus',
           tabBarIcon: ({ color, size }) => (
-            <Droplet size={size} color={color} />
+            <MoreHorizontal size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="pests"
+        name="cuisson"
         options={{
-          title: 'Nuisibles',
-          tabBarIcon: ({ color, size }) => <Bug size={size} color={color} />,
+          href: null,
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="tracabilite"
         options={{
-          title: 'Reglages',
-          tabBarIcon: ({ color, size }) => (
-            <Settings size={size} color={color} />
-          ),
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="huiles"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="nuisibles"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="reglages"
+        options={{
+          href: null,
         }}
       />
     </Tabs>

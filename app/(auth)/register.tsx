@@ -1,34 +1,39 @@
 import { useState } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Text } from '../../src/components/ui/Text';
-import { Input } from '../../src/components/ui/Input';
 import { Button } from '../../src/components/ui/Button';
+import { FormField } from '../../src/components/forms/FormField';
+import { FormPicker } from '../../src/components/forms/FormPicker';
 import { Colors } from '../../src/constants/colors';
 import { useAuthStore } from '../../src/stores/authStore';
 import { supabase } from '../../src/services/supabase';
 
-const ESTABLISHMENT_TYPES = [
-  { value: 'restaurant', label: 'Restaurant' },
-  { value: 'boulangerie', label: 'Boulangerie' },
-  { value: 'traiteur', label: 'Traiteur' },
-  { value: 'epicerie', label: 'Epicerie' },
-  { value: 'food_truck', label: 'Food Truck' },
-  { value: 'cantine', label: 'Cantine' },
-  { value: 'hotel_restaurant', label: 'Hotel-Restaurant' },
-  { value: 'autre', label: 'Autre' },
-] as const;
+const ESTABLISHMENT_TYPES: Array<{ label: string; value: string }> = [
+  { label: 'Restaurant', value: 'restaurant' },
+  { label: 'Boulangerie-Patisserie', value: 'boulangerie_patisserie' },
+  { label: 'Traiteur', value: 'traiteur' },
+  { label: 'Epicerie fine', value: 'epicerie_fine' },
+  { label: 'Food truck', value: 'food_truck' },
+  { label: 'Cantine', value: 'cantine' },
+  { label: 'Hotel-restaurant', value: 'hotel_restaurant' },
+  { label: 'Autre', value: 'autre' },
+];
 
 const registerSchema = z.object({
-  fullName: z.string().min(2, 'Nom requis (minimum 2 caracteres)'),
+  fullName: z.string().min(2, 'Minimum 2 caracteres'),
   email: z.string().email('Email invalide'),
-  password: z.string().min(6, 'Minimum 6 caracteres'),
-  confirmPassword: z.string().min(6, 'Confirmez le mot de passe'),
-  establishmentName: z.string().min(2, 'Nom de l\'etablissement requis'),
-  establishmentType: z.string().min(1, 'Selectionnez un type d\'etablissement'),
+  password: z.string().min(8, 'Minimum 8 caracteres'),
+  confirmPassword: z.string(),
+  establishmentType: z.string().min(1, 'Selectionnez un type'),
+  establishmentName: z.string().min(2, 'Minimum 2 caracteres'),
+  address: z.string().optional(),
+  postalCode: z.string().optional(),
+  city: z.string().optional(),
+  siret: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Les mots de passe ne correspondent pas',
   path: ['confirmPassword'],
@@ -41,17 +46,20 @@ export default function RegisterScreen() {
   const { signUp } = useAuthStore();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selectedType, setSelectedType] = useState('');
 
-  const { control, handleSubmit, formState: { errors }, setValue } = useForm<RegisterForm>({
+  const { control, handleSubmit } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       fullName: '',
       email: '',
       password: '',
       confirmPassword: '',
-      establishmentName: '',
       establishmentType: '',
+      establishmentName: '',
+      address: '',
+      postalCode: '',
+      city: '',
+      siret: '',
     },
   });
 
@@ -61,16 +69,20 @@ export default function RegisterScreen() {
     try {
       await signUp(data.email, data.password, data.fullName);
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session?.user) {
         await supabase.from('establishments').insert({
-          owner_id: session.user.id,
+          owner_id: sessionData.session.user.id,
           name: data.establishmentName,
           type: data.establishmentType,
+          address: data.address || null,
+          postal_code: data.postalCode || null,
+          city: data.city || null,
+          siret: data.siret || null,
         });
       }
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Erreur lors de l\'inscription');
+      setError(e instanceof Error ? e.message : "Erreur lors de l'inscription");
     } finally {
       setLoading(false);
     }
@@ -85,140 +97,119 @@ export default function RegisterScreen() {
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
       >
-        <Text variant="h1" style={styles.title}>Creer un compte</Text>
-        <Text
-          variant="body"
-          color={Colors.textSecondary}
-          style={styles.subtitle}
-        >
-          Commencez a securiser votre HACCP
+        <Text style={styles.title}>Creer votre compte</Text>
+        <Text style={styles.subtitle}>
+          Commencez a securiser votre conformite HACCP
         </Text>
 
-        <View style={styles.form}>
-          <Controller
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Informations personnelles</Text>
+
+          <FormField
             control={control}
             name="fullName"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Nom complet"
-                value={value}
-                onChangeText={onChange}
-                placeholder="Jean Dupont"
-                error={errors.fullName?.message}
-              />
-            )}
+            label="Nom complet"
+            placeholder="Jean Dupont"
           />
 
-          <Controller
+          <FormField
             control={control}
             name="email"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Email"
-                value={value}
-                onChangeText={onChange}
-                placeholder="votre@email.com"
-                keyboardType="email-address"
-                error={errors.email?.message}
-              />
-            )}
+            label="Email"
+            placeholder="votre@email.com"
+            keyboardType="email-address"
           />
 
-          <Controller
+          <FormField
             control={control}
             name="password"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Mot de passe"
-                value={value}
-                onChangeText={onChange}
-                placeholder="Minimum 6 caracteres"
-                secureTextEntry
-                error={errors.password?.message}
-              />
-            )}
+            label="Mot de passe"
+            placeholder="Minimum 8 caracteres"
+            secureTextEntry
           />
 
-          <Controller
+          <FormField
             control={control}
             name="confirmPassword"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Confirmer le mot de passe"
-                value={value}
-                onChangeText={onChange}
-                placeholder="Confirmez votre mot de passe"
-                secureTextEntry
-                error={errors.confirmPassword?.message}
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="establishmentName"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Nom de l'etablissement"
-                value={value}
-                onChangeText={onChange}
-                placeholder="Mon Restaurant"
-                error={errors.establishmentName?.message}
-              />
-            )}
-          />
-
-          <View>
-            <Text variant="body" style={styles.label}>
-              Type d'etablissement
-            </Text>
-            <View style={styles.typeGrid}>
-              {ESTABLISHMENT_TYPES.map((type) => (
-                <Pressable
-                  key={type.value}
-                  style={[
-                    styles.typeChip,
-                    selectedType === type.value && styles.typeChipSelected,
-                  ]}
-                  onPress={() => {
-                    setSelectedType(type.value);
-                    setValue('establishmentType', type.value);
-                  }}
-                >
-                  <Text
-                    variant="caption"
-                    color={selectedType === type.value ? Colors.white : Colors.textPrimary}
-                  >
-                    {type.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-            {errors.establishmentType ? (
-              <Text variant="caption" color={Colors.danger}>
-                {errors.establishmentType.message}
-              </Text>
-            ) : null}
-          </View>
-
-          {error ? (
-            <Text variant="caption" color={Colors.danger} style={styles.error}>
-              {error}
-            </Text>
-          ) : null}
-
-          <Button
-            title="Creer mon compte"
-            onPress={handleSubmit(onSubmit)}
-            loading={loading}
-          />
-
-          <Button
-            title="Deja un compte ? Se connecter"
-            onPress={() => router.back()}
-            variant="ghost"
+            label="Confirmer le mot de passe"
+            placeholder="Confirmez votre mot de passe"
+            secureTextEntry
           />
         </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Etablissement</Text>
+
+          <FormPicker
+            control={control}
+            name="establishmentType"
+            label="Type d'etablissement"
+            options={ESTABLISHMENT_TYPES}
+          />
+
+          <FormField
+            control={control}
+            name="establishmentName"
+            label="Nom de l'etablissement"
+            placeholder="Mon Restaurant"
+          />
+
+          <FormField
+            control={control}
+            name="address"
+            label="Adresse"
+            placeholder="12 rue de la Paix"
+          />
+
+          <View style={styles.row}>
+            <View style={styles.rowHalf}>
+              <FormField
+                control={control}
+                name="postalCode"
+                label="Code postal"
+                placeholder="75001"
+                keyboardType="numeric"
+              />
+            </View>
+            <View style={styles.rowHalf}>
+              <FormField
+                control={control}
+                name="city"
+                label="Ville"
+                placeholder="Paris"
+              />
+            </View>
+          </View>
+
+          <FormField
+            control={control}
+            name="siret"
+            label="SIRET (optionnel)"
+            placeholder="123 456 789 00012"
+            keyboardType="numeric"
+          />
+        </View>
+
+        {error ? (
+          <Text style={styles.errorText}>{error}</Text>
+        ) : null}
+
+        <Button
+          title="Creer mon compte"
+          onPress={handleSubmit(onSubmit)}
+          loading={loading}
+          variant="primary"
+        />
+
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.linkContainer}
+        >
+          <Text style={styles.linkText}>
+            Deja un compte ?{' '}
+            <Text style={styles.linkTextBold}>Se connecter</Text>
+          </Text>
+        </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -233,38 +224,52 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 24,
     paddingTop: 60,
+    paddingBottom: 40,
   },
   title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: Colors.textPrimary,
     marginBottom: 4,
   },
   subtitle: {
+    fontSize: 16,
+    color: Colors.textSecondary,
     marginBottom: 32,
   },
-  form: {
+  section: {
     gap: 16,
+    marginBottom: 24,
   },
-  label: {
-    fontWeight: '700',
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  rowHalf: {
+    flex: 1,
+  },
+  errorText: {
+    color: Colors.danger,
+    fontSize: 14,
+    textAlign: 'center',
     marginBottom: 8,
   },
-  typeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+  linkContainer: {
+    alignItems: 'center',
+    paddingVertical: 16,
   },
-  typeChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 24,
-    backgroundColor: Colors.white,
-    borderWidth: 1,
-    borderColor: '#DEE2E6',
+  linkText: {
+    color: Colors.textSecondary,
+    fontSize: 14,
   },
-  typeChipSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  error: {
-    textAlign: 'center',
+  linkTextBold: {
+    color: Colors.primary,
+    fontWeight: '600',
   },
 });

@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Text } from '../../src/components/ui/Text';
-import { Input } from '../../src/components/ui/Input';
 import { Button } from '../../src/components/ui/Button';
+import { FormField } from '../../src/components/forms/FormField';
 import { Colors } from '../../src/constants/colors';
 import { useAuthStore } from '../../src/stores/authStore';
 
@@ -23,7 +23,7 @@ export default function LoginScreen() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { control, handleSubmit, formState: { errors } } = useForm<LoginForm>({
+  const { control, handleSubmit } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '' },
   });
@@ -51,65 +51,48 @@ export default function LoginScreen() {
       >
         <View style={styles.logoContainer}>
           <View style={styles.logoBadge}>
-            <Text variant="h1" color={Colors.white}>FRESH-CORE</Text>
+            <Text style={styles.logoText}>FRESH{'\u00B7'}CORE</Text>
+            <Text style={styles.logoSubtext}>Conformite HACCP simplifiee</Text>
           </View>
-          <Text
-            variant="caption"
-            color={Colors.textSecondary}
-            style={styles.subtitle}
-          >
-            HACCP simplifie pour restaurateurs
-          </Text>
         </View>
 
         <View style={styles.form}>
-          <Controller
+          <FormField
             control={control}
             name="email"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Email"
-                value={value}
-                onChangeText={onChange}
-                placeholder="votre@email.com"
-                keyboardType="email-address"
-                error={errors.email?.message}
-              />
-            )}
+            label="Email"
+            placeholder="votre@email.com"
+            keyboardType="email-address"
           />
 
-          <Controller
+          <FormField
             control={control}
             name="password"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Mot de passe"
-                value={value}
-                onChangeText={onChange}
-                placeholder="Votre mot de passe"
-                secureTextEntry
-                error={errors.password?.message}
-              />
-            )}
+            label="Mot de passe"
+            placeholder="Mot de passe"
+            secureTextEntry
           />
 
           {error ? (
-            <Text variant="caption" color={Colors.danger} style={styles.error}>
-              {error}
-            </Text>
+            <Text style={styles.errorText}>{error}</Text>
           ) : null}
 
           <Button
             title="Se connecter"
             onPress={handleSubmit(onSubmit)}
             loading={loading}
+            variant="primary"
           />
 
-          <Button
-            title="Creer un compte"
+          <Pressable
             onPress={() => router.push('/(auth)/register')}
-            variant="ghost"
-          />
+            style={styles.linkContainer}
+          >
+            <Text style={styles.linkText}>
+              Pas encore de compte ?{' '}
+              <Text style={styles.linkTextBold}>Creer un compte</Text>
+            </Text>
+          </Pressable>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -131,18 +114,41 @@ const styles = StyleSheet.create({
     marginBottom: 48,
   },
   logoBadge: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
+    backgroundColor: '#1B4332',
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
   },
-  subtitle: {
-    marginTop: 8,
+  logoText: {
+    color: Colors.white,
+    fontSize: 28,
+    fontWeight: '700',
+    letterSpacing: 3,
+  },
+  logoSubtext: {
+    color: Colors.white,
+    fontSize: 14,
+    opacity: 0.8,
+    marginTop: 4,
   },
   form: {
     gap: 16,
   },
-  error: {
+  errorText: {
+    color: Colors.danger,
+    fontSize: 14,
     textAlign: 'center',
+  },
+  linkContainer: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  linkText: {
+    color: Colors.textSecondary,
+    fontSize: 14,
+  },
+  linkTextBold: {
+    color: Colors.primary,
+    fontWeight: '600',
   },
 });

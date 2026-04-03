@@ -4,18 +4,26 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  ViewStyle,
 } from 'react-native';
 import { Colors } from '../../constants/colors';
 
 interface Props {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   disabled?: boolean;
   icon?: React.ReactNode;
+  fullWidth?: boolean;
 }
+
+const sizeHeights: Record<string, number> = {
+  sm: 40,
+  md: 48,
+  lg: 56,
+};
 
 export function Button({
   title,
@@ -25,30 +33,55 @@ export function Button({
   loading = false,
   disabled = false,
   icon,
+  fullWidth = false,
 }: Props) {
   const isDisabled = disabled || loading;
+
+  const variantStyle = variantStyles[variant] ?? variantStyles.primary;
+  const textVariantStyle = textVariantStyles[variant] ?? textVariantStyles.primary;
 
   return (
     <Pressable
       onPress={onPress}
       disabled={isDisabled}
-      style={({ pressed }) => [
-        styles.base,
-        styles[variant],
-        styles[size],
-        isDisabled && styles.disabled,
-        pressed && !isDisabled && styles.pressed,
-      ]}
+      style={({ pressed }) => {
+        const combined: ViewStyle[] = [
+          styles.base,
+          variantStyle,
+          {
+            height: sizeHeights[size] ?? sizeHeights.md,
+            paddingHorizontal: size === 'sm' ? 12 : size === 'lg' ? 20 : 16,
+          },
+          fullWidth ? styles.fullWidth : undefined,
+          isDisabled ? styles.disabled : undefined,
+          pressed && !isDisabled ? styles.pressed : undefined,
+        ].filter(Boolean) as ViewStyle[];
+        return combined;
+      }}
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'ghost' ? Colors.primary : Colors.white}
+          color={
+            variant === 'ghost' || variant === 'outline'
+              ? Colors.primary
+              : Colors.white
+          }
           size="small"
         />
       ) : (
         <>
           {icon}
-          <Text style={[styles.text, styles[`${variant}Text`], styles[`${size}Text`]]}>
+          <Text
+            style={[
+              styles.text,
+              textVariantStyle,
+              size === 'sm'
+                ? styles.smText
+                : size === 'lg'
+                  ? styles.lgText
+                  : styles.mdText,
+            ]}
+          >
             {title}
           </Text>
         </>
@@ -57,16 +90,7 @@ export function Button({
   );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    borderRadius: 8,
-    minHeight: 44,
-  },
-  // Variants
+const variantStyles: Record<string, ViewStyle> = StyleSheet.create({
   primary: {
     backgroundColor: Colors.primary,
   },
@@ -81,44 +105,51 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.primary,
   },
-  // Sizes
-  sm: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+  outline: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: Colors.primary,
   },
-  md: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+});
+
+const textVariantStyles = StyleSheet.create({
+  primary: {
+    color: Colors.white,
   },
-  lg: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+  secondary: {
+    color: Colors.white,
   },
-  // States
+  danger: {
+    color: Colors.white,
+  },
+  ghost: {
+    color: Colors.primary,
+  },
+  outline: {
+    color: Colors.primary,
+  },
+});
+
+const styles = StyleSheet.create({
+  base: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 8,
+  },
+  fullWidth: {
+    width: '100%',
+  },
   disabled: {
     opacity: 0.5,
   },
   pressed: {
     opacity: 0.85,
   },
-  // Text base
   text: {
     fontWeight: '600',
   },
-  // Text variants
-  primaryText: {
-    color: Colors.white,
-  },
-  secondaryText: {
-    color: Colors.white,
-  },
-  dangerText: {
-    color: Colors.white,
-  },
-  ghostText: {
-    color: Colors.primary,
-  },
-  // Text sizes
   smText: {
     fontSize: 14,
   },

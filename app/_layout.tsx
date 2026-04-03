@@ -17,8 +17,8 @@ export default function RootLayout() {
         await initDatabase();
         setDbReady(true);
         await initialize();
-      } catch (e) {
-        console.warn('Init error:', e);
+      } catch (error: unknown) {
+        console.warn('Initialization error:', error);
         setDbReady(true);
       }
     };
@@ -45,9 +45,15 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="temperature/[equipmentId]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="temperature/corrective" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="temperature/releve" options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name="temperature/correctif" options={{ headerShown: false, animation: 'slide_from_right' }} />
         <Stack.Screen name="delivery/new" options={{ presentation: 'modal' }} />
         <Stack.Screen name="delivery/[deliveryId]" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="reception/nouvelle" options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name="reception/[id]" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="produit/ajouter" options={{ headerShown: false, animation: 'slide_from_right' }} />
         <Stack.Screen name="report/ddpp" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="rapport/ddpp" options={{ headerShown: false, animation: 'slide_from_right' }} />
         <Stack.Screen name="onboarding" options={{ presentation: 'modal' }} />
       </Stack>
     </SafeAreaProvider>

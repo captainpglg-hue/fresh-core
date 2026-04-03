@@ -1,11 +1,11 @@
 import React from 'react';
-import { Text as BaseText, StyleSheet, TextStyle } from 'react-native';
+import { Text as BaseText, StyleSheet, type StyleProp, type TextStyle } from 'react-native';
 import { Colors } from '../../constants/colors';
 
 interface Props {
   variant?: 'h1' | 'h2' | 'h3' | 'body' | 'caption';
   children: React.ReactNode;
-  style?: TextStyle;
+  style?: StyleProp<TextStyle>;
   color?: string;
 }
 
