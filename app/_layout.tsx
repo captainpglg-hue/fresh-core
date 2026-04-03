@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAuthStore } from '../src/stores/authStore';
 import { initDatabase } from '../src/services/database';
+import { seedDemoData } from '../src/services/demoData';
 
 export default function RootLayout() {
   const { isAuthenticated, isLoading, initialize } = useAuthStore();
@@ -15,6 +16,7 @@ export default function RootLayout() {
     const init = async () => {
       try {
         await initDatabase();
+        await seedDemoData();
         setDbReady(true);
         await initialize();
       } catch (error: unknown) {
@@ -54,6 +56,7 @@ export default function RootLayout() {
         <Stack.Screen name="produit/ajouter" options={{ headerShown: false, animation: 'slide_from_right' }} />
         <Stack.Screen name="report/ddpp" options={{ presentation: 'modal' }} />
         <Stack.Screen name="rapport/ddpp" options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name="camera/capture" options={{ presentation: 'fullScreenModal', headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ presentation: 'modal' }} />
       </Stack>
     </SafeAreaProvider>

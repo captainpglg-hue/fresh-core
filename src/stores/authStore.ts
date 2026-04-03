@@ -26,10 +26,39 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initialize: async () => {
     try {
       const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
-      if (!supabaseUrl || supabaseUrl.includes('PLACEHOLDER')) {
-        set({ isLoading: false, isAuthenticated: false });
+      const isDemo = !supabaseUrl || supabaseUrl.includes('PLACEHOLDER');
+
+      if (isDemo) {
+        // Mode demo : utilisateur fictif, pas besoin de Supabase
+        const demoUser: Profile = {
+          id: 'demo-user-001',
+          email: 'demo@freshcore.io',
+          full_name: 'Marie Dupont',
+          role: 'owner',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        const demoEstablishment: Establishment = {
+          id: 'demo-establishment-001',
+          owner_id: 'demo-user-001',
+          name: 'Restaurant Le Provencal',
+          address: '12 rue de la Paix',
+          city: 'Paris',
+          postal_code: '75002',
+          siret: '12345678901234',
+          establishment_type: 'restaurant',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        set({
+          user: demoUser,
+          establishment: demoEstablishment,
+          isAuthenticated: true,
+          isLoading: false,
+        });
         return;
       }
+
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         const { data: profile } = await supabase
