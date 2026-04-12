@@ -192,12 +192,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0D1B2A;
 </div>
 <script>
 const SUPABASE_URL='https://kmmlwuwsahtzgzztcdaj.supabase.co';
-const SUPABASE_KEY='VOTRE_CLE_ICI';
+const SUPABASE_KEY='sb_publishable_2vpOpFX40IzXgEp_nOCfKg_x_nIqRUs';
 let db=null;try{db=window.supabase?.createClient(SUPABASE_URL,SUPABASE_KEY);}catch(e){}
 const DEVICE_ID=(()=>{let id=localStorage.getItem('fc_device_id');if(!id){id='fc_'+Date.now()+'_'+Math.random().toString(36).substr(2,6);localStorage.setItem('fc_device_id',id);}return id;})();
 function getData(k,d=[]){try{return JSON.parse(localStorage.getItem('fc_'+k)||JSON.stringify(d));}catch(e){return d;}}
 function setData(k,v){localStorage.setItem('fc_'+k,JSON.stringify(v));}
-async function saveDB(t,data){if(!db||SUPABASE_KEY==='VOTRE_CLE_ICI')return;try{await db.from(t).upsert({...data,device_id:DEVICE_ID});}catch(e){}}
+async function saveDB(t,data){if(!db)return;try{await db.from(t).upsert({...data,device_id:DEVICE_ID});}catch(e){}}
 const FILIERES=[{id:'peche',icon:'🎣',label:'Pêche maritime',sub:'Marée, criée, mareyage'},{id:'elevage',icon:'🐄',label:'Élevage',sub:'Bétail, volaille, ovins'},{id:'laitier',icon:'🥛',label:'Laitier',sub:'Lait, crème, yaourt'},{id:'fromage',icon:'🧀',label:'Fromagerie',sub:'Affineur, crémier'},{id:'charcuterie',icon:'🥩',label:'Charcuterie',sub:'Boucherie, salaison'},{id:'legumes',icon:'🥦',label:'Fruits & Légumes',sub:'Maraîcher, primeur'},{id:'boulangerie',icon:'🥖',label:'Boulangerie',sub:'Pain, viennoiserie'},{id:'restauration',icon:'🍽️',label:'Restauration',sub:'Resto, collectivité'},{id:'vins',icon:'🍷',label:'Vins & Spiritueux',sub:'Viticulteur, caviste'},{id:'autre',icon:'📦',label:'Autre filière',sub:'Agroalimentaire'}];
 const MAILLONS={peche:[{id:'pecheur',icon:'⚓',label:'Pêcheur',sub:'Patron de pêche'},{id:'criee',icon:'🏪',label:'Criée',sub:'Vente aux enchères'},{id:'mareyeur',icon:'🚚',label:'Mareyeur',sub:'Grossiste'},{id:'poissonnier',icon:'🐟',label:'Poissonnier',sub:'Détaillant'},{id:'restaurateur',icon:'🍽️',label:'Restaurateur',sub:'CHR'},{id:'logisticien',icon:'📦',label:'Logisticien',sub:'Transport'}],default:[{id:'producteur',icon:'🌾',label:'Producteur',sub:'À la source'},{id:'transformateur',icon:'🏭',label:'Transformateur',sub:'Atelier'},{id:'distributeur',icon:'🚚',label:'Distributeur',sub:'Grossiste'},{id:'detaillant',icon:'🏪',label:'Détaillant',sub:'Commerce'},{id:'restaurateur',icon:'🍽️',label:'Restaurateur',sub:'CHR'},{id:'logisticien',icon:'📦',label:'Logisticien',sub:'Transport'}]};
 let obSel={filiere:null,maillon:null};
