@@ -267,4 +267,11 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   linkText: {
-    color
+    color: Colors.textSecondary,
+    fontSize: 14,
+  },
+  linkTextBold: {
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+});
