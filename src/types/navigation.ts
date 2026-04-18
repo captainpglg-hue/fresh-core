@@ -2,9 +2,8 @@ export type RootStackParamList = {
   '(auth)': undefined;
   '(tabs)': undefined;
   'temperature/[equipmentId]': { equipmentId: string };
-  'temperature/corrective': { equipmentId: string; temperature: number; threshold: number; thresholdType: string };
-  'delivery/new': undefined;
-  'delivery/[deliveryId]': { deliveryId: string };
-  'report/ddpp': undefined;
-  'onboarding': undefined;
-};
+  'temperature/releve': { equipmentId: string };
+  'temperature/correctif': { equipmentId: string; temperature: number; threshold: number; thresholdType: string };
+  'reception/nouvelle': undefined;
+  'reception/[id]': { id: string };
+  'produit/ajouter': undefine

@@ -35,7 +35,7 @@ export default function ReceptionsScreen() {
   const renderDelivery = ({ item }: { item: Delivery }) => {
     const status = STATUS_MAP[item.status] || STATUS_MAP.pending;
     return (
-      <Pressable onPress={() => router.push(`/delivery/${item.id}`)}>
+      <Pressable onPress={() => router.push(`/reception/${item.id}`)}>
         <Card style={styles.card}>
           <View style={styles.cardRow}>
             <View style={styles.cardInfo}>
@@ -76,7 +76,7 @@ export default function ReceptionsScreen() {
         }
       />
 
-      <Pressable style={styles.fab} onPress={() => router.push('/delivery/new')}>
+      <Pressable style={styles.fab} onPress={() => router.push('/reception/nouvelle')}>
         <Plus size={28} color={Colors.white} />
       </Pressable>
     </View>
@@ -93,4 +93,3 @@ const styles = StyleSheet.create({
   cardStatus: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   empty: { alignItems: 'center', paddingTop: 60 },
   fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.accent, justifyContent: 'center', alignItems: 'center', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4 },
-});

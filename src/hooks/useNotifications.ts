@@ -17,17 +17,16 @@ export function useNotifications() {
           router.push('/(tabs)/temperatures');
           break;
         case 'DLC_ALERT':
-          router.push('/(tabs)/traceability');
+          router.push('/(tabs)/tracabilite');
           break;
         case 'CLEANING_REMINDER':
-          router.push('/(tabs)/cleaning');
+          router.push('/(tabs)/nettoyage');
           break;
         case 'PEST_REMINDER':
-          router.push('/(tabs)/pests');
+          router.push('/(tabs)/nuisibles');
           break;
       }
     });
 
     return () => subscription.remove();
-  }, []);
-}
+  }, []);

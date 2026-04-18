@@ -105,7 +105,7 @@ export default function TemperatureEquipmentScreen() {
 
       if (!compliant) {
         router.replace({
-          pathname: '/temperature/corrective',
+          pathname: '/temperature/correctif',
           params: {
             equipmentId: currentEquipment.id,
             equipmentName: currentEquipment.name,
@@ -360,3 +360,4 @@ const styles = StyleSheet.create({
     height: 8,
   },
 });
+ 

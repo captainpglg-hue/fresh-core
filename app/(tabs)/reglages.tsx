@@ -94,7 +94,7 @@ export default function ReglagesScreen() {
         </Card>
 
         <Text variant="h3" style={styles.sectionTitle}>Rapport DDPP</Text>
-        <Pressable onPress={() => router.push('/report/ddpp')}>
+        <Pressable onPress={() => router.push('/rapport/ddpp')}>
           <Card>
             <View style={styles.row}>
               <FileText size={20} color={Colors.primary} />
@@ -175,4 +175,4 @@ const styles = StyleSheet.create({
   rowInfo: { flex: 1, gap: 2 },
   notifCard: { gap: 4 },
   notifRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 },
-});
+});

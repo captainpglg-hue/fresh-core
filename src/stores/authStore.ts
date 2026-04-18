@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { supabase } from '../services/supabase';
+import { supabase, isDemoMode } from '../services/supabase';
 import type { Profile, Establishment } from '../types/database';
 import type { Session } from '@supabase/supabase-js';
 
@@ -25,10 +25,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   initialize: async () => {
     try {
-      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
-      const isDemo = !supabaseUrl || supabaseUrl.includes('PLACEHOLDER');
-
-      if (isDemo) {
+      if (isDemoMode) {
         // Mode demo : utilisateur fictif, pas besoin de Supabase
         const demoUser: Profile = {
           id: 'demo-user-001',
