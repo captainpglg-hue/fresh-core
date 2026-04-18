@@ -12,11 +12,13 @@ import { Colors } from '../../src/constants/colors';
 import { useAuthStore } from '../../src/stores/authStore';
 import { supabase } from '../../src/services/supabase';
 
+// Les valeurs DOIVENT matcher le CHECK de la colonne establishment_type en base
+// (supabase/migrations/001_initial_schema.sql).
 const ESTABLISHMENT_TYPES: Array<{ label: string; value: string }> = [
   { label: 'Restaurant', value: 'restaurant' },
-  { label: 'Boulangerie-Patisserie', value: 'boulangerie_patisserie' },
+  { label: 'Boulangerie / Patisserie', value: 'boulangerie' },
   { label: 'Traiteur', value: 'traiteur' },
-  { label: 'Epicerie fine', value: 'epicerie_fine' },
+  { label: 'Epicerie fine', value: 'epicerie' },
   { label: 'Food truck', value: 'food_truck' },
   { label: 'Cantine', value: 'cantine' },
   { label: 'Hotel-restaurant', value: 'hotel_restaurant' },
@@ -74,7 +76,7 @@ export default function RegisterScreen() {
         await supabase.from('establishments').insert({
           owner_id: sessionData.session.user.id,
           name: data.establishmentName,
-          type: data.establishmentType,
+          establishment_type: data.establishmentType,
           address: data.address || null,
           postal_code: data.postalCode || null,
           city: data.city || null,
@@ -265,11 +267,4 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   linkText: {
-    color: Colors.textSecondary,
-    fontSize: 14,
-  },
-  linkTextBold: {
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-});
+    color
