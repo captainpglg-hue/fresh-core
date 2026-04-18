@@ -6,4 +6,8 @@ export type RootStackParamList = {
   'temperature/correctif': { equipmentId: string; temperature: number; threshold: number; thresholdType: string };
   'reception/nouvelle': undefined;
   'reception/[id]': { id: string };
-  'produit/ajouter': undefine
+  'produit/ajouter': undefined;
+  'rapport/ddpp': undefined;
+  'camera/capture': { mode: 'temperature' | 'document' };
+  'onboarding': undefined;
+};

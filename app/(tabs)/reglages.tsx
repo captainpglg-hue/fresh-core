@@ -175,4 +175,4 @@ const styles = StyleSheet.create({
   rowInfo: { flex: 1, gap: 2 },
   notifCard: { gap: 4 },
   notifRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 },
-});
+});

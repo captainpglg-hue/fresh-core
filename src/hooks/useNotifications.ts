@@ -29,4 +29,5 @@ export function useNotifications() {
     });
 
     return () => subscription.remove();
-  }, []);
+  }, []);
+}
