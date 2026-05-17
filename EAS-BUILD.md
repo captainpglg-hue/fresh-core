@@ -1,4 +1,4 @@
-﻿# EAS Build - Premier APK Fresh-Core
+# EAS Build - Premier APK Fresh-Core
 
 ## Prerequis (une seule fois)
 
