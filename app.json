@@ -27,6 +27,8 @@
       "package": "io.passcore.freshcore",
       "permissions": [
         "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ]
     },
@@ -59,6 +61,12 @@
         "projectId": "a1fd7802-bca8-42da-b7c2-07f5ab3bfefc"
       }
     },
-    "owner": "freshcore"
+    "owner": "freshcore",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/a1fd7802-bca8-42da-b7c2-07f5ab3bfefc"
+    }
   }
 }
