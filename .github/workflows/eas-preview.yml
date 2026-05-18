@@ -1,0 +1,40 @@
+name: EAS Build — preview APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: "Optional build note (shown in expo.dev queue)"
+        required: false
+        default: ""
+
+# Prereq (one-time setup):
+#   1. Generate an Expo access token at https://expo.dev/accounts/[account]/settings/access-tokens
+#   2. Add it as repo secret EXPO_TOKEN (Settings → Secrets and variables → Actions)
+#
+# Trigger from the GitHub UI: Actions → "EAS Build — preview APK" → Run workflow.
+# Build runs on Expo's cloud (free tier ~30 builds/month), GitHub job stays under 5 min
+# because we use --no-wait. The APK link lands on expo.dev/accounts/[account]/projects/fresh-core/builds.
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install npm deps
+        run: npm ci
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Trigger EAS preview build
+        run: eas build --profile preview --platform android --non-interactive --no-wait --message "${{ github.event.inputs.message }} (commit ${{ github.sha }})"
