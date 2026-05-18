@@ -141,7 +141,7 @@ export default function TemperatureEquipmentScreen() {
             Analyse OCR en cours...
           </Text>
           <Text variant="body" color={Colors.textSecondary}>
-            Lecture de la temperature sur la photo
+            Lecture de la température sur la photo
           </Text>
         </View>
       </SafeAreaView>
@@ -170,7 +170,7 @@ export default function TemperatureEquipmentScreen() {
             value={result.value}
             confidence={result.confidence}
             isCompliant={compliant}
-            equipmentName={currentEquipment?.name ?? 'Equipement'}
+            equipmentName={currentEquipment?.name ?? 'Équipement'}
             onValidate={handleValidate}
             onRetake={handleRetake}
           />
@@ -192,7 +192,7 @@ export default function TemperatureEquipmentScreen() {
               Erreur de lecture
             </Text>
             <Text variant="body" color={Colors.textSecondary} style={styles.errorText}>
-              Impossible de lire la temperature sur la photo. Verifiez que le thermometre est bien visible et reessayez.
+              Impossible de lire la température sur la photo. Vérifiez que le thermomètre est bien visible et réessayez.
             </Text>
             <Button title="Reprendre la photo" onPress={handleRetake} variant="primary" />
             <View style={styles.spacing} />
@@ -213,7 +213,7 @@ export default function TemperatureEquipmentScreen() {
 
         <Card style={styles.infoCard}>
           <Text variant="h1" style={styles.equipmentName}>
-            {currentEquipment?.name ?? 'Equipement inconnu'}
+            {currentEquipment?.name ?? 'Équipement inconnu'}
           </Text>
 
           {currentEquipment?.location && (
@@ -232,7 +232,7 @@ export default function TemperatureEquipmentScreen() {
           {/* Thresholds */}
           <View style={styles.thresholdsSection}>
             <Text variant="h3" style={styles.sectionTitle}>
-              Seuils reglementaires
+              Seuils réglementaires
             </Text>
             <View style={styles.thresholdRow}>
               {threshold?.min !== undefined && (
@@ -257,7 +257,7 @@ export default function TemperatureEquipmentScreen() {
               )}
               {!threshold && (
                 <Text variant="body" color={Colors.textSecondary}>
-                  Aucun seuil defini
+                  Aucun seuil défini
                 </Text>
               )}
             </View>
@@ -278,7 +278,7 @@ export default function TemperatureEquipmentScreen() {
         {recentReadings.length > 0 && (
           <Card style={styles.historyCard}>
             <Text variant="h3" style={styles.sectionTitle}>
-              Releves du jour
+              Relevés du jour
             </Text>
             <TemperatureChart
               readings={recentReadings}

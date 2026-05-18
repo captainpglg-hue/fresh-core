@@ -64,13 +64,13 @@ export function CameraScreen({
     return (
       <View style={styles.permissionContainer}>
         <Text variant="h2" color={Colors.white} style={styles.permissionTitle}>
-          Acces camera
+          Accès caméra
         </Text>
         <Text variant="body" color={Colors.white} style={styles.permissionText}>
-          Fresh-Core a besoin d'acceder a votre camera pour photographier les thermometres et documents HACCP.
+          Fresh-Core a besoin d'accéder à votre caméra pour photographier les thermomètres et documents HACCP.
         </Text>
         <Button
-          title="Autoriser la camera"
+          title="Autoriser la caméra"
           onPress={requestPermission}
           variant="primary"
           size="lg"
@@ -86,13 +86,13 @@ export function CameraScreen({
     return (
       <View style={styles.permissionContainer}>
         <Text variant="h2" color={Colors.white} style={styles.permissionTitle}>
-          Camera non autorisee
+          Caméra non autorisée
         </Text>
         <Text variant="body" color={Colors.white} style={styles.permissionText}>
-          L'acces a la camera a ete refuse. Vous pouvez l'activer dans les reglages de votre appareil.
+          L'accès à la caméra a été refusé. Vous pouvez l'activer dans les réglages de votre appareil.
         </Text>
         <Button
-          title="Ouvrir les reglages"
+          title="Ouvrir les réglages"
           onPress={handleOpenSettings}
           variant="primary"
           size="lg"

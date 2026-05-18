@@ -30,7 +30,7 @@ export function useDashboard(): DashboardData {
 
   const modules: DashboardModule[] = [
     {
-      name: 'Temperatures',
+      name: 'Températures',
       icon: 'thermometer',
       completed: tempStats.compliant,
       total: tempStats.total,
@@ -38,7 +38,7 @@ export function useDashboard(): DashboardData {
       alertMessage: tempStats.nonCompliant > 0 ? `${tempStats.nonCompliant} hors seuil` : null,
     },
     {
-      name: 'Receptions',
+      name: 'Réceptions',
       icon: 'truck',
       completed: 0,
       total: 0,
@@ -62,12 +62,12 @@ export function useDashboard(): DashboardData {
       alertMessage: null,
     },
     {
-      name: 'Tracabilite DLC',
+      name: 'Traçabilité DLC',
       icon: 'tag',
       completed: traceStore.productsInStock.length,
       total: traceStore.productsInStock.length,
       hasAlert: expired.length > 0 || expiringSoon.length > 0,
-      alertMessage: expired.length > 0 ? `${expired.length} expire(s)` : expiringSoon.length > 0 ? `${expiringSoon.length} bientot` : null,
+      alertMessage: expired.length > 0 ? `${expired.length} expiré(s)` : expiringSoon.length > 0 ? `${expiringSoon.length} bientôt` : null,
     },
     {
       name: 'Huiles',
@@ -83,7 +83,7 @@ export function useDashboard(): DashboardData {
       completed: checkedCount,
       total: pestStore.checkpoints.length,
       hasAlert: !allCheckpointsChecked,
-      alertMessage: !allCheckpointsChecked ? 'Controle incomplet' : null,
+      alertMessage: !allCheckpointsChecked ? 'Contrôle incomplet' : null,
     },
   ];
 

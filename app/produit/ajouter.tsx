@@ -34,9 +34,9 @@ const CATEGORY_OPTIONS = [
   { label: 'Viande', value: 'viande' },
   { label: 'Volaille', value: 'volaille' },
   { label: 'Poisson', value: 'poisson' },
-  { label: 'Legumes', value: 'legumes' },
+  { label: 'Légumes', value: 'legumes' },
   { label: 'Laitier', value: 'laitier' },
-  { label: 'Surgele', value: 'surgele' },
+  { label: 'Surgelé', value: 'surgele' },
   { label: 'Sec', value: 'sec' },
   { label: 'Fait maison', value: 'fait_maison' },
   { label: 'Autre', value: 'autre' },
@@ -136,10 +136,10 @@ export default function AjouterProduitScreen() {
         <View style={styles.processingOverlay}>
           <ActivityIndicator size="large" color={Colors.primary} />
           <Text variant="h2" style={styles.processingText}>
-            Analyse de l'etiquette...
+            Analyse de l'étiquette...
           </Text>
           <Text variant="body" color={Colors.textSecondary}>
-            Extraction DLC et numero de lot
+            Extraction DLC et numéro de lot
           </Text>
         </View>
       </SafeAreaView>
@@ -162,9 +162,9 @@ export default function AjouterProduitScreen() {
         <FormPicker
           control={control}
           name="category"
-          label="Categorie"
+          label="Catégorie"
           options={CATEGORY_OPTIONS}
-          placeholder="Selectionner une categorie..."
+          placeholder="Sélectionner une catégorie..."
         />
 
         <FormDatePicker
@@ -178,7 +178,7 @@ export default function AjouterProduitScreen() {
         <FormField
           control={control}
           name="lotNumber"
-          label="Numero de lot"
+          label="Numéro de lot"
           placeholder="Ex: L20260401"
         />
 
@@ -188,13 +188,13 @@ export default function AjouterProduitScreen() {
             name="supplierId"
             label="Fournisseur"
             options={supplierOptions}
-            placeholder="Selectionner un fournisseur..."
+            placeholder="Sélectionner un fournisseur..."
           />
         )}
 
         {/* OCR scan button */}
         <Button
-          title="Scanner l'etiquette"
+          title="Scanner l'étiquette"
           onPress={() => setShowCamera(true)}
           variant="outline"
           size="lg"
@@ -206,15 +206,15 @@ export default function AjouterProduitScreen() {
           <View style={styles.ocrResultContainer}>
             {ocrResult.dlc && (
               <Badge
-                text={`DLC detectee: ${ocrResult.dlc.getDate().toString().padStart(2, '0')}/${(ocrResult.dlc.getMonth() + 1).toString().padStart(2, '0')}/${ocrResult.dlc.getFullYear()}`}
+                text={`DLC détectée: ${ocrResult.dlc.getDate().toString().padStart(2, '0')}/${(ocrResult.dlc.getMonth() + 1).toString().padStart(2, '0')}/${ocrResult.dlc.getFullYear()}`}
                 variant="success"
               />
             )}
             {ocrResult.lot && (
-              <Badge text={`Lot detecte: ${ocrResult.lot}`} variant="success" />
+              <Badge text={`Lot détecté: ${ocrResult.lot}`} variant="success" />
             )}
             {!ocrResult.dlc && !ocrResult.lot && (
-              <Badge text="Aucune information detectee" variant="warning" />
+              <Badge text="Aucune information détectée" variant="warning" />
             )}
           </View>
         )}

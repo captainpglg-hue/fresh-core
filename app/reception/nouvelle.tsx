@@ -74,17 +74,17 @@ const CATEGORY_OPTIONS = [
   { label: 'Viande', value: 'viande' },
   { label: 'Volaille', value: 'volaille' },
   { label: 'Poisson', value: 'poisson' },
-  { label: 'Legumes', value: 'legumes' },
+  { label: 'Légumes', value: 'legumes' },
   { label: 'Laitier', value: 'laitier' },
-  { label: 'Surgele', value: 'surgele' },
+  { label: 'Surgelé', value: 'surgele' },
   { label: 'Sec', value: 'sec' },
   { label: 'Autre', value: 'autre' },
 ];
 
 const REFUSAL_MOTIFS = [
-  { label: 'Temperature non conforme', value: 'temperature' },
-  { label: 'DLC depassee', value: 'dlc' },
-  { label: 'Emballage endommage', value: 'emballage' },
+  { label: 'Température non conforme', value: 'temperature' },
+  { label: 'DLC dépassée', value: 'dlc' },
+  { label: 'Emballage endommagé', value: 'emballage' },
   { label: 'Aspect visuel non conforme', value: 'visuel' },
   { label: 'Produit manquant', value: 'manquant' },
   { label: 'Autre', value: 'autre' },
@@ -239,7 +239,7 @@ function ProductItemCard({
 
       {/* Category chips */}
       <Text variant="caption" color={Colors.primary} style={styles.fieldLabel}>
-        Categorie
+        Catégorie
       </Text>
       <View style={styles.categoryGrid}>
         {CATEGORY_OPTIONS.map((opt) => (
@@ -264,7 +264,7 @@ function ProductItemCard({
       {/* Temperature */}
       <View style={styles.inlineRow}>
         <Button
-          title="Prendre temperature"
+          title="Prendre température"
           onPress={() => onTakeTemperature(index)}
           variant="outline"
           size="sm"
@@ -333,7 +333,7 @@ function ProductItemCard({
               variant="caption"
               color={item.packagingOk === false ? Colors.white : Colors.danger}
             >
-              Defaut
+              Défaut
             </Text>
           </Pressable>
         </View>
@@ -364,7 +364,7 @@ function ProductItemCard({
               variant="caption"
               color={item.visualOk === false ? Colors.white : Colors.danger}
             >
-              Defaut
+              Défaut
             </Text>
           </Pressable>
         </View>
@@ -642,7 +642,7 @@ export default function NouvelleReceptionScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <Header
-        title="Nouvelle reception"
+        title="Nouvelle réception"
         showBack
         onBack={() => {
           if (step > 1) {
@@ -671,7 +671,7 @@ export default function NouvelleReceptionScreen() {
                 <FormPicker
                   control={supplierForm.control}
                   name="existingSupplierId"
-                  label="Selectionner un fournisseur"
+                  label="Sélectionner un fournisseur"
                   options={supplierOptions}
                   placeholder="Choisir un fournisseur..."
                 />
@@ -681,7 +681,7 @@ export default function NouvelleReceptionScreen() {
                     <View style={styles.alertBanner}>
                       <AlertTriangle size={18} color={Colors.danger} />
                       <Text variant="caption" color={Colors.danger} style={styles.alertText}>
-                        Agrement sanitaire expire !
+                        Agrément sanitaire expiré !
                       </Text>
                     </View>
                   )}
@@ -691,7 +691,7 @@ export default function NouvelleReceptionScreen() {
                     <View style={styles.warningBanner}>
                       <AlertTriangle size={18} color={Colors.warning} />
                       <Text variant="caption" color={Colors.warning} style={styles.alertText}>
-                        Agrement sanitaire bientot expire
+                        Agrément sanitaire bientôt expiré
                       </Text>
                     </View>
                   )}
@@ -740,18 +740,18 @@ export default function NouvelleReceptionScreen() {
                 <FormField
                   control={supplierForm.control}
                   name="sanitaryApproval"
-                  label="N° agrement sanitaire"
+                  label="N° agrément sanitaire"
                   placeholder="Ex: FR 75.001.001 CE"
                 />
                 <FormDatePicker
                   control={supplierForm.control}
                   name="sanitaryApprovalExpiry"
-                  label="Date expiration agrement"
+                  label="Date expiration agrément"
                 />
                 <FormField
                   control={supplierForm.control}
                   name="phone"
-                  label="Telephone"
+                  label="Téléphone"
                   placeholder="Ex: 01 23 45 67 89"
                   keyboardType="phone-pad"
                 />
@@ -764,7 +764,7 @@ export default function NouvelleReceptionScreen() {
                 />
 
                 <Button
-                  title="Creer et continuer"
+                  title="Créer et continuer"
                   onPress={handleCreateSupplier}
                   variant="primary"
                   size="lg"
@@ -839,7 +839,7 @@ export default function NouvelleReceptionScreen() {
         {step === 3 && (
           <View style={styles.stepContent}>
             <Text variant="h2" style={styles.stepTitle}>
-              Controle produits
+              Contrôle produits
             </Text>
 
             {items.map((item, index) => (
@@ -963,14 +963,14 @@ export default function NouvelleReceptionScreen() {
               name="motif"
               label="Motif"
               options={REFUSAL_MOTIFS}
-              rules={{ required: 'Selectionnez un motif' }}
+              rules={{ required: 'Sélectionnez un motif' }}
             />
 
             <Input
-              label="Details supplementaires"
+              label="Détails supplémentaires"
               value={refusalForm.watch('motifDetail')}
               onChangeText={(val) => refusalForm.setValue('motifDetail', val)}
-              placeholder="Precision du motif..."
+              placeholder="Précision du motif..."
               multiline
             />
 

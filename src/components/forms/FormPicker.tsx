@@ -36,7 +36,7 @@ export function FormPicker<T extends FieldValues>({
   name,
   label,
   options,
-  placeholder = 'Selectionner...',
+  placeholder = 'Sélectionner...',
   rules,
 }: Props<T>) {
   const [modalVisible, setModalVisible] = useState(false);

@@ -41,7 +41,7 @@ export default function DDPPReportScreen() {
 
   const handleGenerate = async (data: ReportFormValues) => {
     if (!establishment) {
-      setError('Aucun etablissement selectionne');
+      setError('Aucun établissement sélectionné');
       return;
     }
     if (!data.periodStart || !data.periodEnd) {
@@ -63,7 +63,7 @@ export default function DDPPReportScreen() {
       const formattedEnd = format(data.periodEnd, 'dd-MM-yyyy', { locale: fr });
       setReportFileName(`Rapport_DDPP_${formattedStart}_${formattedEnd}.pdf`);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Erreur lors de la generation');
+      setError(e instanceof Error ? e.message : 'Erreur lors de la génération');
     } finally {
       setLoading(false);
     }
@@ -85,29 +85,29 @@ export default function DDPPReportScreen() {
           <View style={styles.iconRowText}>
             <Text variant="h2">Rapport DDPP</Text>
             <Text variant="caption" color={Colors.textSecondary}>
-              Direction Departementale de la Protection des Populations
+              Direction Départementale de la Protection des Populations
             </Text>
           </View>
         </View>
 
         <Text variant="body" color={Colors.textSecondary} style={styles.description}>
-          Generez un rapport complet de vos enregistrements HACCP sur une periode donnee, pret a etre
-          presente lors d'un controle sanitaire.
+          Générez un rapport complet de vos enregistrements HACCP sur une période donnée, prêt à être
+          présenté lors d'un contrôle sanitaire.
         </Text>
 
         <Card style={styles.formCard}>
           <FormDatePicker
             control={control}
             name="periodStart"
-            label="Debut de periode"
-            rules={{ required: 'Date de debut requise' }}
+            label="Début de période"
+            rules={{ required: 'Date de début requise' }}
             maximumDate={new Date()}
           />
 
           <FormDatePicker
             control={control}
             name="periodEnd"
-            label="Fin de periode"
+            label="Fin de période"
             rules={{ required: 'Date de fin requise' }}
             minimumDate={periodStart ? new Date(periodStart) : undefined}
             maximumDate={new Date()}
@@ -122,7 +122,7 @@ export default function DDPPReportScreen() {
 
         {!reportUri && (
           <Button
-            title="Generer le rapport"
+            title="Générer le rapport"
             onPress={handleSubmit(handleGenerate)}
             variant="primary"
             size="lg"
@@ -135,7 +135,7 @@ export default function DDPPReportScreen() {
         {reportUri && reportFileName && (
           <Card variant="success" style={styles.resultCard}>
             <Text variant="h3" color={Colors.success}>
-              Rapport genere avec succes
+              Rapport généré avec succès
             </Text>
             <Text variant="body" color={Colors.textSecondary} style={styles.fileName}>
               {reportFileName}
@@ -152,7 +152,7 @@ export default function DDPPReportScreen() {
               />
               <View style={styles.btnSpacing} />
               <Button
-                title="Generer un nouveau rapport"
+                title="Générer un nouveau rapport"
                 onPress={() => {
                   setReportUri(null);
                   setReportFileName(null);

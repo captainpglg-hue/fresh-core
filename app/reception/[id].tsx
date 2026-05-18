@@ -17,8 +17,8 @@ const STATUS_MAP: Record<
   { label: string; variant: 'success' | 'danger' | 'warning' | 'info' }
 > = {
   pending: { label: 'En cours', variant: 'warning' },
-  accepted: { label: 'Acceptee', variant: 'success' },
-  refused: { label: 'Refusee', variant: 'danger' },
+  accepted: { label: 'Acceptée', variant: 'success' },
+  refused: { label: 'Refusée', variant: 'danger' },
   partial: { label: 'Partielle', variant: 'info' },
 };
 
@@ -51,7 +51,7 @@ export default function ReceptionDetailScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <Header title="Detail reception" showBack onBack={() => router.back()} />
+        <Header title="Détail réception" showBack onBack={() => router.back()} />
         <View style={styles.centerContent}>
           <Text variant="body" color={Colors.textSecondary}>
             Chargement...
@@ -64,10 +64,10 @@ export default function ReceptionDetailScreen() {
   if (!delivery) {
     return (
       <SafeAreaView style={styles.container}>
-        <Header title="Detail reception" showBack onBack={() => router.back()} />
+        <Header title="Détail réception" showBack onBack={() => router.back()} />
         <View style={styles.centerContent}>
           <Text variant="h3" color={Colors.textSecondary}>
-            Reception introuvable
+            Réception introuvable
           </Text>
           <View style={styles.spacer} />
           <Button title="Retour" onPress={() => router.back()} variant="ghost" />
@@ -87,7 +87,7 @@ export default function ReceptionDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="Detail reception" showBack onBack={() => router.back()} />
+      <Header title="Détail réception" showBack onBack={() => router.back()} />
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Status + date */}
@@ -107,12 +107,12 @@ export default function ReceptionDetailScreen() {
             <Text variant="h3">{supplier.name}</Text>
             {supplier.sanitary_approval && (
               <Text variant="caption" color={Colors.textSecondary}>
-                Agrement: {supplier.sanitary_approval}
+                Agrément: {supplier.sanitary_approval}
               </Text>
             )}
             {supplier.contact_phone && (
               <Text variant="caption" color={Colors.textSecondary}>
-                Tel: {supplier.contact_phone}
+                Tél: {supplier.contact_phone}
               </Text>
             )}
           </Card>
@@ -152,7 +152,7 @@ export default function ReceptionDetailScreen() {
         {/* Products */}
         <View style={styles.productsHeader}>
           <Text variant="h2">
-            {items.length} produit{items.length > 1 ? 's' : ''} controle{items.length > 1 ? 's' : ''}
+            {items.length} produit{items.length > 1 ? 's' : ''} contrôlé{items.length > 1 ? 's' : ''}
           </Text>
           <Text variant="caption" color={Colors.textSecondary}>
             {conformeCount}/{items.length} conforme{conformeCount > 1 ? 's' : ''}
