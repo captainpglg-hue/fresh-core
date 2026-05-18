@@ -43,6 +43,11 @@ export default function RootLayout() {
 
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboarding = segments[0] === 'onboarding';
+    // Public consumer-facing pages (QR-scanned URLs) skip the
+    // onboarding / login gates so a customer lands directly on the
+    // product origin trail.
+    const inPublic = segments[0] === 'origine';
+    if (inPublic) return;
 
     if (!onboardingSeen && !inOnboarding) {
       router.replace('/onboarding');
