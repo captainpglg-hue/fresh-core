@@ -21,9 +21,9 @@ export default function ReglagesScreen() {
   const [notifPest, setNotifPest] = useState(true);
 
   const handleSignOut = () => {
-    Alert.alert('Deconnexion', 'Etes-vous sur de vouloir vous deconnecter ?', [
+    Alert.alert('Déconnexion', 'Êtes-vous sûr de vouloir vous déconnecter ?', [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Deconnexion', style: 'destructive', onPress: () => signOut() },
+      { text: 'Déconnexion', style: 'destructive', onPress: () => signOut() },
     ]);
   };
 
@@ -37,7 +37,7 @@ export default function ReglagesScreen() {
         <Pressable onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft size={24} color={Colors.textPrimary} />
         </Pressable>
-        <Text style={styles.headerTitle}>Reglages</Text>
+        <Text style={styles.headerTitle}>Réglages</Text>
         <View style={styles.placeholder} />
       </View>
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -46,18 +46,18 @@ export default function ReglagesScreen() {
           <View style={styles.row}>
             <User size={20} color={Colors.primary} />
             <View style={styles.rowInfo}>
-              <Text variant="body">{user?.full_name || 'Non connecte'}</Text>
+              <Text variant="body">{user?.full_name || 'Non connecté'}</Text>
               <Text variant="caption" color={Colors.textSecondary}>{user?.email || ''}</Text>
             </View>
           </View>
         </Card>
 
-        <Text variant="h3" style={styles.sectionTitle}>Mon etablissement</Text>
+        <Text variant="h3" style={styles.sectionTitle}>Mon établissement</Text>
         <Card>
           <View style={styles.row}>
             <Building2 size={20} color={Colors.primary} />
             <View style={styles.rowInfo}>
-              <Text variant="body">{establishment?.name || 'Non configure'}</Text>
+              <Text variant="body">{establishment?.name || 'Non configuré'}</Text>
               <Text variant="caption" color={Colors.textSecondary}>
                 {establishment?.establishment_type || ''} {establishment?.city ? `\u2014 ${establishment.city}` : ''}
               </Text>
@@ -75,11 +75,11 @@ export default function ReglagesScreen() {
             <View style={styles.rowInfo}>
               <Text variant="body">{isOnline ? 'En ligne' : 'Hors-ligne'}</Text>
               <Text variant="caption" color={Colors.textSecondary}>
-                {pendingCount > 0 ? `${pendingCount} element(s) en attente` : 'Tout est synchronise'}
+                {pendingCount > 0 ? `${pendingCount} élément(s) en attente` : 'Tout est synchronisé'}
               </Text>
               {lastSyncAt && (
                 <Text variant="caption" color={Colors.textSecondary}>
-                  Derniere sync: {new Date(lastSyncAt).toLocaleString('fr-FR')}
+                  Dernière sync: {new Date(lastSyncAt).toLocaleString('fr-FR')}
                 </Text>
               )}
             </View>
@@ -99,7 +99,7 @@ export default function ReglagesScreen() {
             <View style={styles.row}>
               <FileText size={20} color={Colors.primary} />
               <View style={styles.rowInfo}>
-                <Text variant="body">Generer un rapport</Text>
+                <Text variant="body">Générer un rapport</Text>
                 <Text variant="caption" color={Colors.textSecondary}>Export PDF pour la DDPP</Text>
               </View>
               <ChevronRight size={16} color={Colors.textSecondary} />
@@ -110,7 +110,7 @@ export default function ReglagesScreen() {
         <Text variant="h3" style={styles.sectionTitle}>Notifications</Text>
         <Card style={styles.notifCard}>
           <View style={styles.notifRow}>
-            <Text variant="body">Alertes temperature</Text>
+            <Text variant="body">Alertes température</Text>
             <Switch value={notifTemp} onValueChange={setNotifTemp} trackColor={{ true: Colors.primary }} />
           </View>
           <View style={styles.notifRow}>
@@ -127,7 +127,7 @@ export default function ReglagesScreen() {
           </View>
         </Card>
 
-        <Text variant="h3" style={styles.sectionTitle}>A propos</Text>
+        <Text variant="h3" style={styles.sectionTitle}>À propos</Text>
         <Card>
           <View style={styles.row}>
             <Info size={20} color={Colors.primary} />
@@ -139,7 +139,7 @@ export default function ReglagesScreen() {
           </View>
         </Card>
 
-        <Button title="Deconnexion" onPress={handleSignOut} variant="danger" icon={<LogOut size={16} color={Colors.white} />} />
+        <Button title="Déconnexion" onPress={handleSignOut} variant="danger" icon={<LogOut size={16} color={Colors.white} />} />
       </ScrollView>
     </View>
   );

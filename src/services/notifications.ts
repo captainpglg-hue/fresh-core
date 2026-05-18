@@ -38,8 +38,8 @@ export async function requestPermissions(): Promise<boolean> {
 export async function scheduleTemperatureAlert(equipmentName: string, temperature: number, threshold: number): Promise<void> {
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: 'Alerte Temperature !',
-      body: `${equipmentName}: ${temperature}°C (seuil: ${threshold}°C). Action corrective requise.`,
+      title: 'Alerte Température !',
+      body: `${equipmentName} : ${temperature}°C (seuil ${threshold}°C). Action corrective requise.`,
       data: { type: 'TEMPERATURE_ALERT' },
     },
     trigger: null, // immediate
@@ -50,8 +50,8 @@ export async function scheduleDLCAlert(productName: string, dlcDate: string, day
   if (daysUntil <= 0) {
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: 'DLC Expiree !',
-        body: `${productName} a depasse sa DLC (${dlcDate}). Destruction requise.`,
+        title: 'DLC expirée !',
+        body: `${productName} a dépassé sa DLC (${dlcDate}). Destruction requise.`,
         data: { type: 'DLC_ALERT' },
       },
       trigger: null,
@@ -72,7 +72,7 @@ export async function scheduleCleaningReminder(): Promise<void> {
   await Notifications.scheduleNotificationAsync({
     content: {
       title: 'Rappel Nettoyage',
-      body: 'Des taches de nettoyage sont en attente. Ouvrez Fresh-Core pour les valider.',
+      body: 'Des tâches de nettoyage sont en attente. Ouvrez Fresh-Core pour les valider.',
       data: { type: 'CLEANING_REMINDER' },
     },
     trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 3600, repeats: false },

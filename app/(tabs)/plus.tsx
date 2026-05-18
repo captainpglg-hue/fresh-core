@@ -46,35 +46,35 @@ export default function PlusScreen() {
     {
       icon: <Flame size={24} color={Colors.white} />,
       title: 'Cuisson',
-      description: 'Sonde, timer refroidissement et remise en temperature',
+      description: 'Sonde, timer refroidissement et remise en température',
       route: '/(tabs)/cuisson',
       color: Colors.accent,
     },
     {
       icon: <Tag size={24} color={Colors.white} />,
-      title: 'Tracabilite / DLC',
-      description: 'Etiquetage secondaire, FIFO, destruction, archivage',
+      title: 'Traçabilité / DLC',
+      description: 'Étiquetage secondaire, FIFO, destruction, archivage',
       route: '/(tabs)/tracabilite',
       color: Colors.primaryLight,
     },
     {
       icon: <Droplet size={24} color={Colors.white} />,
       title: 'Huiles',
-      description: 'Test TPM, changement, filtration, elimination',
+      description: 'Test TPM, changement, filtration, élimination',
       route: '/(tabs)/huiles',
       color: Colors.warning,
     },
     {
       icon: <Bug size={24} color={Colors.white} />,
       title: 'Nuisibles',
-      description: 'Points de controle, signalements, interventions',
+      description: 'Points de contrôle, signalements, interventions',
       route: '/(tabs)/nuisibles',
       color: Colors.danger,
     },
     {
       icon: <Settings size={24} color={Colors.white} />,
-      title: 'Reglages',
-      description: 'Compte, etablissement, seuils et preferences',
+      title: 'Réglages',
+      description: 'Compte, établissement, seuils et préférences',
       route: '/(tabs)/reglages',
       color: Colors.textSecondary,
     },
@@ -85,7 +85,7 @@ export default function PlusScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Autres modules</Text>
         <Text style={styles.headerSubtitle}>
-          Acces aux modules complementaires HACCP
+          Accès aux modules complémentaires HACCP
         </Text>
       </View>
       <ScrollView

@@ -27,15 +27,15 @@ import { useAuthStore } from '../../src/stores/authStore';
 
 const CORRECTIVE_OPTIONS = [
   {
-    label: 'Transfert des produits vers un equipement conforme',
+    label: 'Transfert des produits vers un équipement conforme',
     value: 'transfert_produits',
   },
   {
-    label: 'Reglage du thermostat',
+    label: 'Réglage du thermostat',
     value: 'reglage_thermostat',
   },
   {
-    label: 'Alerte maintenance — equipement defaillant',
+    label: 'Alerte maintenance — équipement défaillant',
     value: 'alerte_maintenance',
   },
   {
@@ -43,11 +43,11 @@ const CORRECTIVE_OPTIONS = [
     value: 'refroidissement_rapide',
   },
   {
-    label: 'Destruction des produits a risque',
+    label: 'Destruction des produits à risque',
     value: 'destruction_produits',
   },
   {
-    label: 'Autre action (preciser)',
+    label: 'Autre action (préciser)',
     value: 'autre',
   },
 ];

@@ -76,7 +76,7 @@ export default function TracabiliteScreen() {
         <Pressable onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft size={24} color={Colors.textPrimary} />
         </Pressable>
-        <Text style={styles.headerTitle}>Tracabilite / DLC</Text>
+        <Text style={styles.headerTitle}>Traçabilité / DLC</Text>
         <View style={styles.placeholder} />
       </View>
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -84,7 +84,7 @@ export default function TracabiliteScreen() {
           <Card style={styles.alertCard}>
             <View style={styles.alertRow}>
               <AlertTriangle size={20} color={Colors.danger} />
-              <Text variant="h3" color={Colors.danger}>{expired.length} produit(s) expire(s)</Text>
+              <Text variant="h3" color={Colors.danger}>{expired.length} produit(s) expiré(s)</Text>
             </View>
           </Card>
         )}
@@ -106,11 +106,11 @@ export default function TracabiliteScreen() {
               <View style={styles.productInfo}>
                 <Text variant="h3">{product.product_name}</Text>
                 <Text variant="caption" color={Colors.textSecondary}>
-                  {product.category || 'Non categorise'} {product.lot_number ? `\u2014 Lot: ${product.lot_number}` : ''}
+                  {product.category || 'Non cat\u00e9goris\u00e9'} {product.lot_number ? `\u2014 Lot: ${product.lot_number}` : ''}
                 </Text>
                 <Text variant="caption" color={Colors.textSecondary}>
-                  DLC: {product.dlc_secondary || product.dlc_primary || 'Non renseignee'}
-                  {product.status === 'opened' ? ' (entame)' : ''}
+                  DLC: {product.dlc_secondary || product.dlc_primary || 'Non renseign\u00e9e'}
+                  {product.status === 'opened' ? ' (entam\u00e9)' : ''}
                 </Text>
               </View>
               <View style={styles.productActions}>
@@ -140,7 +140,7 @@ export default function TracabiliteScreen() {
           <View style={styles.modalContent}>
             <Text variant="h2">Ajouter un produit</Text>
             <Input label="Nom du produit" value={name} onChangeText={setName} placeholder="Ex: Filet de poulet" />
-            <Input label="Categorie" value={category} onChangeText={setCategory} placeholder="Ex: viande, laitier..." />
+            <Input label="Catégorie" value={category} onChangeText={setCategory} placeholder="Ex: viande, laitier..." />
             <Input label="DLC (AAAA-MM-JJ)" value={dlc} onChangeText={setDlc} placeholder="Ex: 2026-04-10" />
             <Input label="N\u00B0 de lot" value={lot} onChangeText={setLot} placeholder="Optionnel" />
             <View style={styles.modalButtons}>
@@ -154,8 +154,8 @@ export default function TracabiliteScreen() {
       <Modal visible={showDestroyModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text variant="h2" color={Colors.danger}>Detruire le produit</Text>
-            <Input label="Motif de destruction" value={destroyReason} onChangeText={setDestroyReason} placeholder="Ex: DLC depassee" />
+            <Text variant="h2" color={Colors.danger}>Détruire le produit</Text>
+            <Input label="Motif de destruction" value={destroyReason} onChangeText={setDestroyReason} placeholder="Ex: DLC dépassée" />
             <View style={styles.modalButtons}>
               <Button title="Confirmer la destruction" onPress={handleDestroy} variant="danger" />
               <Button title="Annuler" onPress={() => setShowDestroyModal(false)} variant="ghost" />

@@ -159,8 +159,8 @@ export default function DashboardScreen() {
                   <Text variant="h3">{module.name}</Text>
                   <Text variant="caption" color={Colors.textSecondary}>
                     {module.total > 0
-                      ? `${module.completed}/${module.total} completes`
-                      : 'Aucune donnee'}
+                      ? `${module.completed}/${module.total} complétés`
+                      : 'Aucune donnée'}
                   </Text>
                 </View>
 

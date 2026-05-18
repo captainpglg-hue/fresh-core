@@ -13,19 +13,19 @@ const slides = [
     id: '1',
     icon: Camera,
     title: 'Fini les fiches papier',
-    subtitle: 'Chaque controle HACCP en 30 secondes grace a la photo guidee et la reconnaissance automatique.',
+    subtitle: 'Chaque contrôle HACCP en 30 secondes grâce à la photo guidée et la reconnaissance automatique.',
   },
   {
     id: '2',
     icon: WifiOff,
     title: '100% hors-ligne',
-    subtitle: 'Fonctionne sans internet, meme au marche. Vos donnees se synchronisent automatiquement au retour en ligne.',
+    subtitle: 'Fonctionne sans internet, même au marché. Vos données se synchronisent automatiquement au retour en ligne.',
   },
   {
     id: '3',
     icon: Shield,
     title: 'Rapports conformes DDPP',
-    subtitle: 'Vos releves sont horodates et exportables en PDF pret a presenter lors d\'un controle sanitaire.',
+    subtitle: 'Vos relevés sont horodatés et exportables en PDF prêt à présenter lors d\'un contrôle sanitaire.',
   },
 ];
 

@@ -99,9 +99,9 @@ export default function NuisiblesScreen() {
           </Card>
         )}
 
-        <Text variant="h2">Controle quotidien</Text>
+        <Text variant="h2">Contrôle quotidien</Text>
         <Text variant="caption" color={Colors.textSecondary}>
-          {checkpoints.filter((c) => c.checked).length}/{checkpoints.length} points verifies
+          {checkpoints.filter((c) => c.checked).length}/{checkpoints.length} points vérifiés
         </Text>
 
         {checkpoints.map((cp) => (
@@ -119,7 +119,7 @@ export default function NuisiblesScreen() {
         ))}
 
         {allChecked && (
-          <Badge text="Controle du jour termine" variant="success" />
+          <Badge text="Contrôle du jour terminé" variant="success" />
         )}
 
         <Button title="Signaler une anomalie" onPress={() => setShowAnomalyModal(true)} variant="danger" icon={<AlertTriangle size={16} color={Colors.white} />} />
@@ -144,7 +144,7 @@ export default function NuisiblesScreen() {
         <Button title="Nouvelle intervention" onPress={() => setShowInterventionModal(true)} variant="secondary" />
 
         <Text variant="h2" style={styles.sectionTitle}>Configuration</Text>
-        <Button title="Gerer les points de controle" onPress={() => setShowConfigModal(true)} variant="ghost" />
+        <Button title="Gérer les points de contrôle" onPress={() => setShowConfigModal(true)} variant="ghost" />
       </ScrollView>
 
       <Modal visible={showAnomalyModal} animationType="slide" transparent>
@@ -159,7 +159,7 @@ export default function NuisiblesScreen() {
                 </Pressable>
               ))}
             </View>
-            <Input label="Localisation" value={anomalyLocation} onChangeText={setAnomalyLocation} placeholder="Ou avez-vous observe le nuisible ?" />
+            <Input label="Localisation" value={anomalyLocation} onChangeText={setAnomalyLocation} placeholder="Où avez-vous observé le nuisible ?" />
             <Button title={anomalyPhotoUri ? 'Photo prise' : 'Prendre une photo'} onPress={() => setShowCamera(true)} variant="ghost" />
             <View style={styles.modalButtons}>
               <Button title="Signaler" onPress={handleReportAnomaly} variant="danger" disabled={!pestType} />
@@ -187,7 +187,7 @@ export default function NuisiblesScreen() {
       <Modal visible={showConfigModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text variant="h2">Points de controle</Text>
+            <Text variant="h2">Points de contrôle</Text>
             {checkpoints.map((cp) => (
               <View key={cp.id} style={styles.configRow}>
                 <Text variant="body">{cp.name}</Text>
@@ -196,7 +196,7 @@ export default function NuisiblesScreen() {
                 </Pressable>
               </View>
             ))}
-            <Input label="Nouveau point" value={newCheckpointName} onChangeText={setNewCheckpointName} placeholder="Nom du point de controle" />
+            <Input label="Nouveau point" value={newCheckpointName} onChangeText={setNewCheckpointName} placeholder="Nom du point de contrôle" />
             <View style={styles.modalButtons}>
               <Button title="Ajouter" onPress={() => { if (newCheckpointName) { addCheckpoint(newCheckpointName); setNewCheckpointName(''); } }} variant="secondary" />
               <Button title="Fermer" onPress={() => setShowConfigModal(false)} variant="ghost" />

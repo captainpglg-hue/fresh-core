@@ -16,22 +16,22 @@ import { supabase } from '../../src/services/supabase';
 // (supabase/migrations/001_initial_schema.sql).
 const ESTABLISHMENT_TYPES: Array<{ label: string; value: string }> = [
   { label: 'Restaurant', value: 'restaurant' },
-  { label: 'Boulangerie / Patisserie', value: 'boulangerie' },
+  { label: 'Boulangerie / Pâtisserie', value: 'boulangerie' },
   { label: 'Traiteur', value: 'traiteur' },
-  { label: 'Epicerie fine', value: 'epicerie' },
+  { label: 'Épicerie fine', value: 'epicerie' },
   { label: 'Food truck', value: 'food_truck' },
   { label: 'Cantine', value: 'cantine' },
-  { label: 'Hotel-restaurant', value: 'hotel_restaurant' },
+  { label: 'Hôtel-restaurant', value: 'hotel_restaurant' },
   { label: 'Autre', value: 'autre' },
 ];
 
 const registerSchema = z.object({
-  fullName: z.string().min(2, 'Minimum 2 caracteres'),
+  fullName: z.string().min(2, 'Minimum 2 caractères'),
   email: z.string().email('Email invalide'),
-  password: z.string().min(8, 'Minimum 8 caracteres'),
+  password: z.string().min(8, 'Minimum 8 caractères'),
   confirmPassword: z.string(),
-  establishmentType: z.string().min(1, 'Selectionnez un type'),
-  establishmentName: z.string().min(2, 'Minimum 2 caracteres'),
+  establishmentType: z.string().min(1, 'Sélectionnez un type'),
+  establishmentName: z.string().min(2, 'Minimum 2 caractères'),
   address: z.string().optional(),
   postalCode: z.string().optional(),
   city: z.string().optional(),
@@ -99,9 +99,9 @@ export default function RegisterScreen() {
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>Creer votre compte</Text>
+        <Text style={styles.title}>Créer votre compte</Text>
         <Text style={styles.subtitle}>
-          Commencez a securiser votre conformite HACCP
+          Commencez à sécuriser votre conformité HACCP
         </Text>
 
         <View style={styles.section}>
@@ -126,7 +126,7 @@ export default function RegisterScreen() {
             control={control}
             name="password"
             label="Mot de passe"
-            placeholder="Minimum 8 caracteres"
+            placeholder="Minimum 8 caractères"
             secureTextEntry
           />
 
@@ -140,19 +140,19 @@ export default function RegisterScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Etablissement</Text>
+          <Text style={styles.sectionTitle}>Établissement</Text>
 
           <FormPicker
             control={control}
             name="establishmentType"
-            label="Type d'etablissement"
+            label="Type d'établissement"
             options={ESTABLISHMENT_TYPES}
           />
 
           <FormField
             control={control}
             name="establishmentName"
-            label="Nom de l'etablissement"
+            label="Nom de l'établissement"
             placeholder="Mon Restaurant"
           />
 
@@ -197,7 +197,7 @@ export default function RegisterScreen() {
         ) : null}
 
         <Button
-          title="Creer mon compte"
+          title="Créer mon compte"
           onPress={handleSubmit(onSubmit)}
           loading={loading}
           variant="primary"
@@ -208,7 +208,7 @@ export default function RegisterScreen() {
           style={styles.linkContainer}
         >
           <Text style={styles.linkText}>
-            Deja un compte ?{' '}
+            Déjà un compte ?{' '}
             <Text style={styles.linkTextBold}>Se connecter</Text>
           </Text>
         </Pressable>
