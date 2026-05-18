@@ -1,3 +1,4 @@
+/* eslint-disable import/first -- jest.mock must precede the import it intercepts. */
 jest.mock('./ocrEngine', () => ({
   recognizeText: jest.fn(),
 }));
