@@ -55,3 +55,89 @@ export function shortHash(hash: string | null | undefined): string {
   if (hash.length < 16) return hash;
   return `${hash.slice(0, 8)}…${hash.slice(-8)}`;
 }
+
+export interface ChainVerification {
+  ok: boolean;
+  totalChecked: number;
+  firstBreakAt: string | null;
+  breakReason: string | null;
+}
+
+/**
+ * Walks every delivery for an establishment in chronological order, re-
+ * computes each blockchain_hash from the stored payload + previous hash,
+ * and confirms it matches what was persisted. Returns the first divergence
+ * (if any) so the UI can highlight which reception was tampered with.
+ *
+ * Pure (read-only) — safe to call from any screen.
+ */
+type VerifiableDelivery = {
+  id: string;
+  supplier_id: string | null;
+  establishment_id: string;
+  delivery_date: string;
+  recorded_at: string;
+  status: string;
+  refusal_reason?: string | null;
+  blockchain_hash: string | null;
+};
+
+type VerifiableItem = {
+  product_name: string | null;
+  category: string | null;
+  temperature: number | null;
+  dlc: string | null;
+  lot_number: string | null;
+  photo_paths: string[] | null;
+};
+
+export async function verifyChain(
+  deliveries: VerifiableDelivery[],
+  itemsByDeliveryId: Record<string, VerifiableItem[]>,
+): Promise<ChainVerification> {
+  const sorted = [...deliveries].sort((a, b) =>
+    a.recorded_at.localeCompare(b.recorded_at),
+  );
+  let prev = GENESIS_HASH;
+  let checked = 0;
+  for (const d of sorted) {
+    if (!d.blockchain_hash) continue;
+    const items = itemsByDeliveryId[d.id] ?? [];
+    const payload =
+      d.status === 'refused'
+        ? {
+            supplier_id: d.supplier_id ?? null,
+            establishment_id: d.establishment_id,
+            delivery_date: d.delivery_date,
+            recorded_at: d.recorded_at,
+            status: 'refused',
+            refusal_reason: d.refusal_reason ?? null,
+          }
+        : {
+            supplier_id: d.supplier_id ?? null,
+            establishment_id: d.establishment_id,
+            delivery_date: d.delivery_date,
+            recorded_at: d.recorded_at,
+            items: items.map((it) => ({
+              product_name: it.product_name ?? null,
+              category: it.category ?? null,
+              temperature: it.temperature ?? null,
+              dlc: it.dlc ?? null,
+              lot_number: it.lot_number ?? null,
+              photo_paths: it.photo_paths ?? null,
+            })),
+          };
+    const expected = await computeChainHash(prev, payload);
+    checked += 1;
+    if (expected !== d.blockchain_hash) {
+      return {
+        ok: false,
+        totalChecked: checked,
+        firstBreakAt: d.id,
+        breakReason: `Hash recalculé ${shortHash(expected)} ≠ enregistré ${shortHash(d.blockchain_hash)}`,
+      };
+    }
+    prev = d.blockchain_hash;
+  }
+  return { ok: true, totalChecked: checked, firstBreakAt: null, breakReason: null };
+}

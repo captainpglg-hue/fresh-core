@@ -93,13 +93,14 @@ export async function generateDDPPReport(
       </table>
 
       <h2>2. Réceptions</h2>
-      <p>${deliveries.length} réception(s) sur la période</p>
+      <p>${deliveries.length} réception(s) sur la période — chaque ligne porte son empreinte SHA-256 chaînée à la précédente (chaîne d'audit inviolable).</p>
       <table>
-        <tr><th>Date</th><th>Statut</th></tr>
+        <tr><th>Date</th><th>Statut</th><th>Empreinte (chaîne d'audit)</th></tr>
         ${deliveries.map((d) => `
           <tr>
             <td>${d.delivery_date}</td>
             <td>${d.status}</td>
+            <td style="font-family: monospace; font-size: 10px;">${d.blockchain_hash ? d.blockchain_hash.slice(0, 16) + '…' + d.blockchain_hash.slice(-16) : '—'}</td>
           </tr>
         `).join('')}
       </table>
