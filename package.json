@@ -13,6 +13,7 @@
     "build:android:preview": "eas build --profile preview --platform android",
     "build:android:prod": "eas build --profile production --platform android",
     "test": "jest",
+    "typecheck": "node --stack-size=10000 node_modules/typescript/lib/tsc.js --noEmit",
     "lint": "npx expo lint"
   },
   "dependencies": {
