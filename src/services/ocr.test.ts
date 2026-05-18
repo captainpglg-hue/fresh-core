@@ -1,14 +1,11 @@
-jest.mock('@react-native-ml-kit/text-recognition', () => ({
-  __esModule: true,
-  default: {
-    recognize: jest.fn(),
-  },
+jest.mock('./ocrEngine', () => ({
+  recognizeText: jest.fn(),
 }));
 
-import TextRecognition from '@react-native-ml-kit/text-recognition';
+import { recognizeText } from './ocrEngine';
 import { extractTemperature } from './ocr';
 
-const mockRecognize = TextRecognition.recognize as jest.Mock;
+const mockRecognize = recognizeText as jest.Mock;
 
 describe('extractTemperature', () => {
   beforeEach(() => {
@@ -16,7 +13,7 @@ describe('extractTemperature', () => {
   });
 
   it('extracts temperature from text "3.2°C"', async () => {
-    mockRecognize.mockResolvedValueOnce({ text: '3.2°C' });
+    mockRecognize.mockResolvedValueOnce('3.2°C');
 
     const result = await extractTemperature('file:///photo.jpg');
     expect(result).not.toBeNull();
@@ -25,7 +22,7 @@ describe('extractTemperature', () => {
   });
 
   it('extracts negative temperature from text "-18.5"', async () => {
-    mockRecognize.mockResolvedValueOnce({ text: '-18.5' });
+    mockRecognize.mockResolvedValueOnce('-18.5');
 
     const result = await extractTemperature('file:///photo.jpg');
     expect(result).not.toBeNull();
@@ -33,14 +30,14 @@ describe('extractTemperature', () => {
   });
 
   it('returns null when text has no numbers', async () => {
-    mockRecognize.mockResolvedValueOnce({ text: 'no numbers here' });
+    mockRecognize.mockResolvedValueOnce('no numbers here');
 
     const result = await extractTemperature('file:///photo.jpg');
     expect(result).toBeNull();
   });
 
   it('returns null on empty text', async () => {
-    mockRecognize.mockResolvedValueOnce({ text: '' });
+    mockRecognize.mockResolvedValueOnce('');
 
     const result = await extractTemperature('file:///photo.jpg');
     expect(result).toBeNull();
@@ -54,7 +51,7 @@ describe('extractTemperature', () => {
   });
 
   it('handles comma decimal separator "4,5°C"', async () => {
-    mockRecognize.mockResolvedValueOnce({ text: '4,5°C' });
+    mockRecognize.mockResolvedValueOnce('4,5°C');
 
     const result = await extractTemperature('file:///photo.jpg');
     expect(result).not.toBeNull();
