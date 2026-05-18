@@ -8,6 +8,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Text } from '../ui/Text';
 import { Button } from '../ui/Button';
 import { Colors } from '../../constants/colors';
+import { processPhoto } from '../../services/photo';
 
 interface Props {
   onCapture: (uri: string) => void;
@@ -26,9 +27,13 @@ export function CameraOverlay({ onCapture, onClose }: Props) {
 
     try {
       const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.8,
+        quality: 0.9,
       });
-      if (photo?.uri) {
+      if (!photo?.uri) return;
+      try {
+        const processed = await processPhoto(photo.uri);
+        onCapture(processed.uri);
+      } catch {
         onCapture(photo.uri);
       }
     } catch {

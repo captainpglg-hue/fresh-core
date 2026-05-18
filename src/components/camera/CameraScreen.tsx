@@ -5,6 +5,7 @@ import { X, Zap, ZapOff } from 'lucide-react-native';
 import { Text } from '../ui/Text';
 import { Button } from '../ui/Button';
 import { Colors } from '../../constants/colors';
+import { processPhoto } from '../../services/photo';
 
 interface CameraScreenProps {
   onCapture: (uri: string) => void;
@@ -28,8 +29,16 @@ export function CameraScreen({
     if (!cameraRef.current || isCapturing) return;
     setIsCapturing(true);
     try {
-      const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
-      if (photo?.uri) {
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.9 });
+      if (!photo?.uri) return;
+      // Compress + fingerprint before handing off so upload won't 413
+      // and DDPP report can prove the photo hasn't been altered.
+      try {
+        const processed = await processPhoto(photo.uri);
+        onCapture(processed.uri);
+      } catch {
+        // If post-processing fails (rare), fall back to the raw photo
+        // rather than blocking the user.
         onCapture(photo.uri);
       }
     } catch {
