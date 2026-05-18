@@ -9,7 +9,7 @@ import { Button } from '../../src/components/ui/Button';
 import { Header } from '../../src/components/ui/Header';
 import { PhotoViewer } from '../../src/components/ui/PhotoViewer';
 import { EmptyState } from '../../src/components/ui/EmptyState';
-import { Package } from 'lucide-react-native';
+import { Package, ShieldCheck } from 'lucide-react-native';
 import { Colors } from '../../src/constants/colors';
 import { getByIdLocal, getAllLocal } from '../../src/services/database';
 import { useSupplierStore } from '../../src/stores/supplierStore';
@@ -267,6 +267,19 @@ export default function ReceptionDetailScreen() {
             </Card>
           );
         })}
+
+        {delivery.blockchain_hash ? (
+          <>
+            <View style={styles.bottomSpacer} />
+            <Button
+              title="Voir l'origine + QR consommateur"
+              onPress={() => router.push(`/origine/${delivery.id}`)}
+              variant="primary"
+              icon={<ShieldCheck size={16} color={Colors.white} />}
+              fullWidth
+            />
+          </>
+        ) : null}
 
         <View style={styles.bottomSpacer} />
         <Button title="Retour" onPress={() => router.back()} variant="ghost" fullWidth />

@@ -1,4 +1,5 @@
 import { getDatabase } from './database';
+import { computeChainHash, GENESIS_HASH } from '../utils/hashChain';
 
 export async function seedDemoData(): Promise<void> {
   const db = await getDatabase();
@@ -112,6 +113,163 @@ export async function seedDemoData(): Promise<void> {
       `INSERT OR IGNORE INTO pest_controls (id, establishment_id, control_type, checkpoint_name, is_anomaly, recorded_by, recorded_at, local_id, created_at)
        VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?)`,
       [pc.id, estId, pc.type, pc.name, userId, now, pc.id, now]
+    );
+  }
+
+  // ── Filière viande + poisson : deux réceptions historiques avec
+  // chaîne de hash (genesis → meat → fish). Sert de support à la démo
+  // consommateur (QR code → page "Origine produit").
+  const meatReceivedAt = todayAt(8, 15);
+  const meatItems = [
+    {
+      product_name: 'Filet de bœuf race Charolaise',
+      category: 'viande',
+      temperature: 2.8,
+      temperature_compliant: 1,
+      dlc: addDays(today, 6),
+      lot_number: 'L2026-0401',
+      packaging_ok: 1,
+      visual_ok: 1,
+    },
+    {
+      product_name: 'Onglet de bœuf',
+      category: 'viande',
+      temperature: 3.1,
+      temperature_compliant: 1,
+      dlc: addDays(today, 5),
+      lot_number: 'L2026-0402',
+      packaging_ok: 1,
+      visual_ok: 1,
+    },
+  ];
+  const meatPayload = {
+    supplier_id: 'sup-1',
+    establishment_id: estId,
+    delivery_date: today.toISOString().split('T')[0],
+    recorded_at: meatReceivedAt,
+    items: meatItems.map((it) => ({
+      product_name: it.product_name,
+      category: it.category,
+      temperature: it.temperature,
+      dlc: it.dlc,
+      lot_number: it.lot_number,
+      photo_paths: null,
+    })),
+  };
+  const meatHash = await computeChainHash(GENESIS_HASH, meatPayload);
+
+  await db.runAsync(
+    `INSERT OR IGNORE INTO deliveries
+      (id, establishment_id, supplier_id, delivery_date, status, recorded_by, recorded_at, local_id, blockchain_hash, created_at)
+     VALUES (?, ?, ?, ?, 'accepted', ?, ?, ?, ?, ?)`,
+    [
+      'del-meat-001',
+      estId,
+      'sup-1',
+      today.toISOString().split('T')[0],
+      userId,
+      meatReceivedAt,
+      'del-meat-001',
+      meatHash,
+      now,
+    ],
+  );
+  let meatItemIdx = 1;
+  for (const it of meatItems) {
+    await db.runAsync(
+      `INSERT OR IGNORE INTO delivery_items
+        (id, delivery_id, product_name, category, temperature, temperature_compliant, dlc, lot_number, packaging_ok, visual_ok, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        `del-meat-001-item-${meatItemIdx++}`,
+        'del-meat-001',
+        it.product_name,
+        it.category,
+        it.temperature,
+        it.temperature_compliant,
+        it.dlc,
+        it.lot_number,
+        it.packaging_ok,
+        it.visual_ok,
+        now,
+      ],
+    );
+  }
+
+  const fishReceivedAt = todayAt(9, 5);
+  const fishItems = [
+    {
+      product_name: 'Saumon Atlantique entier',
+      category: 'poisson',
+      temperature: 1.2,
+      temperature_compliant: 1,
+      dlc: addDays(today, 2),
+      lot_number: 'L2026-0412',
+      packaging_ok: 1,
+      visual_ok: 1,
+    },
+    {
+      product_name: 'Bar de ligne',
+      category: 'poisson',
+      temperature: 1.5,
+      temperature_compliant: 1,
+      dlc: addDays(today, 2),
+      lot_number: 'L2026-0413',
+      packaging_ok: 1,
+      visual_ok: 1,
+    },
+  ];
+  const fishPayload = {
+    supplier_id: 'sup-2',
+    establishment_id: estId,
+    delivery_date: today.toISOString().split('T')[0],
+    recorded_at: fishReceivedAt,
+    items: fishItems.map((it) => ({
+      product_name: it.product_name,
+      category: it.category,
+      temperature: it.temperature,
+      dlc: it.dlc,
+      lot_number: it.lot_number,
+      photo_paths: null,
+    })),
+  };
+  const fishHash = await computeChainHash(meatHash, fishPayload);
+
+  await db.runAsync(
+    `INSERT OR IGNORE INTO deliveries
+      (id, establishment_id, supplier_id, delivery_date, status, recorded_by, recorded_at, local_id, blockchain_hash, created_at)
+     VALUES (?, ?, ?, ?, 'accepted', ?, ?, ?, ?, ?)`,
+    [
+      'del-fish-001',
+      estId,
+      'sup-2',
+      today.toISOString().split('T')[0],
+      userId,
+      fishReceivedAt,
+      'del-fish-001',
+      fishHash,
+      now,
+    ],
+  );
+  let fishItemIdx = 1;
+  for (const it of fishItems) {
+    await db.runAsync(
+      `INSERT OR IGNORE INTO delivery_items
+        (id, delivery_id, product_name, category, temperature, temperature_compliant, dlc, lot_number, packaging_ok, visual_ok, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        `del-fish-001-item-${fishItemIdx++}`,
+        'del-fish-001',
+        it.product_name,
+        it.category,
+        it.temperature,
+        it.temperature_compliant,
+        it.dlc,
+        it.lot_number,
+        it.packaging_ok,
+        it.visual_ok,
+        now,
+      ],
     );
   }
 }

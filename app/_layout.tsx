@@ -72,6 +72,7 @@ export default function RootLayout() {
           <Stack.Screen name="reception/[id]" options={{ presentation: 'modal' }} />
           <Stack.Screen name="produit/ajouter" options={{ headerShown: false, animation: 'slide_from_right' }} />
           <Stack.Screen name="rapport/ddpp" options={{ headerShown: false, animation: 'slide_from_right' }} />
+          <Stack.Screen name="origine/[id]" options={{ headerShown: false, animation: 'slide_from_right' }} />
           <Stack.Screen name="camera/capture" options={{ presentation: 'fullScreenModal', headerShown: false }} />
           <Stack.Screen name="onboarding" options={{ presentation: 'modal' }} />
         </Stack>
