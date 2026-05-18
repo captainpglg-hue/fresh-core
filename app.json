@@ -58,6 +58,9 @@
         "projectId": "a1fd7802-bca8-42da-b7c2-07f5ab3bfefc"
       }
     },
+    "experiments": {
+      "baseUrl": "https://cdn.jsdelivr.net/gh/captainpglg-hue/fresh-core@gh-pages"
+    },
     "owner": "freshcore",
     "runtimeVersion": {
       "policy": "appVersion"
