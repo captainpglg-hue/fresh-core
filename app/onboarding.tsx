@@ -5,6 +5,7 @@ import { Text } from '../src/components/ui/Text';
 import { Button } from '../src/components/ui/Button';
 import { Colors } from '../src/constants/colors';
 import { Camera, WifiOff, Shield } from 'lucide-react-native';
+import { useAuthStore } from '../src/stores/authStore';
 
 const { width } = Dimensions.get('window');
 
@@ -31,15 +32,22 @@ const slides = [
 
 export default function OnboardingScreen() {
   const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
+
+  const finish = () => {
+    // If we're already authenticated (demo mode), skip the register step
+    // and go straight to the tabs the user came in through.
+    router.replace(isAuthenticated ? '/(tabs)' : '/(auth)/register');
+  };
 
   const handleNext = () => {
     if (currentIndex < slides.length - 1) {
       flatListRef.current?.scrollToIndex({ index: currentIndex + 1 });
       setCurrentIndex(currentIndex + 1);
     } else {
-      router.replace('/(auth)/register');
+      finish();
     }
   };
 
@@ -90,7 +98,7 @@ export default function OnboardingScreen() {
           size="lg"
         />
         {currentIndex < slides.length - 1 && (
-          <Pressable onPress={() => router.replace('/(auth)/register')}>
+          <Pressable onPress={finish}>
             <Text variant="caption" color={Colors.textSecondary} style={styles.skipText}>Passer</Text>
           </Pressable>
         )}

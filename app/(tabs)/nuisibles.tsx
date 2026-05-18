@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Pressable, Modal } from 'react-native';
+import { Image, View, StyleSheet, ScrollView, Pressable, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Text } from '../../src/components/ui/Text';
 import { Card } from '../../src/components/ui/Card';
@@ -160,7 +160,15 @@ export default function NuisiblesScreen() {
               ))}
             </View>
             <Input label="Localisation" value={anomalyLocation} onChangeText={setAnomalyLocation} placeholder="Où avez-vous observé le nuisible ?" />
-            <Button title={anomalyPhotoUri ? 'Photo prise' : 'Prendre une photo'} onPress={() => setShowCamera(true)} variant="ghost" />
+            {anomalyPhotoUri ? (
+              <View style={styles.photoPreviewWrap}>
+                <Image source={{ uri: anomalyPhotoUri }} style={styles.photoPreview} />
+                <Pressable onPress={() => setAnomalyPhotoUri('')} style={styles.photoRemove}>
+                  <Trash2 size={14} color={Colors.white} />
+                </Pressable>
+              </View>
+            ) : null}
+            <Button title={anomalyPhotoUri ? 'Reprendre la photo' : 'Prendre une photo'} onPress={() => setShowCamera(true)} variant="ghost" />
             <View style={styles.modalButtons}>
               <Button title="Signaler" onPress={handleReportAnomaly} variant="danger" disabled={!pestType} />
               <Button title="Annuler" onPress={() => setShowAnomalyModal(false)} variant="ghost" />
@@ -246,4 +254,7 @@ const styles = StyleSheet.create({
   typeChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: Colors.background, borderWidth: 1, borderColor: '#DEE2E6' },
   typeChipSelected: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   configRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#DEE2E6' },
+  photoPreviewWrap: { position: 'relative', alignSelf: 'flex-start', marginVertical: 8 },
+  photoPreview: { width: 120, height: 90, borderRadius: 8, backgroundColor: Colors.border },
+  photoRemove: { position: 'absolute', top: -6, right: -6, width: 24, height: 24, borderRadius: 12, backgroundColor: Colors.danger, alignItems: 'center', justifyContent: 'center' },
 });

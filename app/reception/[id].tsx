@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Image, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '../../src/components/ui/Text';
@@ -7,6 +7,7 @@ import { Card } from '../../src/components/ui/Card';
 import { Badge } from '../../src/components/ui/Badge';
 import { Button } from '../../src/components/ui/Button';
 import { Header } from '../../src/components/ui/Header';
+import { PhotoViewer } from '../../src/components/ui/PhotoViewer';
 import { Colors } from '../../src/constants/colors';
 import { getByIdLocal, getAllLocal } from '../../src/services/database';
 import { useSupplierStore } from '../../src/stores/supplierStore';
@@ -30,6 +31,13 @@ export default function ReceptionDetailScreen() {
   const [delivery, setDelivery] = useState<Delivery | null>(null);
   const [items, setItems] = useState<DeliveryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [previewUri, setPreviewUri] = useState<string | null>(null);
+  const [previewCaption, setPreviewCaption] = useState<string | undefined>();
+
+  const openPhoto = (uri: string, caption?: string) => {
+    setPreviewUri(uri);
+    setPreviewCaption(caption);
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -38,7 +46,19 @@ export default function ReceptionDetailScreen() {
         const d = await getByIdLocal<Delivery>('deliveries', id);
         setDelivery(d);
         const i = await getAllLocal<DeliveryItem>('delivery_items', 'delivery_id = ?', [id]);
-        setItems(i);
+        // photo_paths is stored as JSON-encoded TEXT in SQLite — parse back
+        // into the string[] the type promises.
+        const parsed = i.map((it) => {
+          if (typeof it.photo_paths === 'string') {
+            try {
+              return { ...it, photo_paths: JSON.parse(it.photo_paths) as string[] };
+            } catch {
+              return { ...it, photo_paths: null };
+            }
+          }
+          return it;
+        });
+        setItems(parsed);
       } catch {
         // Loading error
       } finally {
@@ -124,11 +144,15 @@ export default function ReceptionDetailScreen() {
             <Text variant="caption" color={Colors.textSecondary} style={styles.sectionLabel}>
               BON DE LIVRAISON
             </Text>
-            <Image
-              source={{ uri: delivery.delivery_note_photo_path }}
-              style={styles.deliveryNotePhoto}
-              resizeMode="cover"
-            />
+            <Pressable
+              onPress={() => openPhoto(delivery.delivery_note_photo_path!, 'Bon de livraison')}
+            >
+              <Image
+                source={{ uri: delivery.delivery_note_photo_path }}
+                style={styles.deliveryNotePhoto}
+                resizeMode="cover"
+              />
+            </Pressable>
           </Card>
         )}
 
@@ -140,11 +164,15 @@ export default function ReceptionDetailScreen() {
             </Text>
             <Text variant="body">{delivery.refusal_reason}</Text>
             {delivery.refusal_photo_path && (
-              <Image
-                source={{ uri: delivery.refusal_photo_path }}
-                style={styles.refusalPhoto}
-                resizeMode="cover"
-              />
+              <Pressable
+                onPress={() => openPhoto(delivery.refusal_photo_path!, 'Photo du refus')}
+              >
+                <Image
+                  source={{ uri: delivery.refusal_photo_path }}
+                  style={styles.refusalPhoto}
+                  resizeMode="cover"
+                />
+              </Pressable>
             )}
           </Card>
         )}
@@ -213,12 +241,16 @@ export default function ReceptionDetailScreen() {
                   style={styles.photosRow}
                 >
                   {item.photo_paths.map((uri, idx) => (
-                    <Image
+                    <Pressable
                       key={`${item.id}-photo-${idx}`}
-                      source={{ uri }}
-                      style={styles.itemPhoto}
-                      resizeMode="cover"
-                    />
+                      onPress={() => openPhoto(uri, `${item.product_name} — photo ${idx + 1}`)}
+                    >
+                      <Image
+                        source={{ uri }}
+                        style={styles.itemPhoto}
+                        resizeMode="cover"
+                      />
+                    </Pressable>
                   ))}
                 </ScrollView>
               )}
@@ -229,6 +261,13 @@ export default function ReceptionDetailScreen() {
         <View style={styles.bottomSpacer} />
         <Button title="Retour" onPress={() => router.back()} variant="ghost" fullWidth />
       </ScrollView>
+
+      <PhotoViewer
+        uri={previewUri}
+        visible={previewUri !== null}
+        caption={previewCaption}
+        onClose={() => setPreviewUri(null)}
+      />
     </SafeAreaView>
   );
 }

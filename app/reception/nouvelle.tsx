@@ -565,6 +565,9 @@ export default function NouvelleReceptionScreen() {
   const handleAccept = useCallback(async () => {
     for (const item of items) {
       if (!item.productName) continue;
+      // Capture the temperature-photo URI so the reception detail screen
+      // can re-show the evidence later (DDPP audit trail).
+      const photos = item.temperaturePhotoUri ? [item.temperaturePhotoUri] : null;
       addItem({
         product_name: item.productName,
         category: item.category || null,
@@ -574,6 +577,7 @@ export default function NouvelleReceptionScreen() {
         lot_number: item.lotNumber || undefined,
         packaging_ok: item.packagingOk ?? true,
         visual_ok: item.visualOk ?? true,
+        photo_paths: photos,
       });
     }
     await validateDelivery();

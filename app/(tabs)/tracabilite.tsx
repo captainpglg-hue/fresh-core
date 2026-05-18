@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Pressable, Modal } from 'react-native';
+import { Alert, View, StyleSheet, ScrollView, Pressable, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Text } from '../../src/components/ui/Text';
 import { Card } from '../../src/components/ui/Card';
@@ -46,22 +46,40 @@ export default function TracabiliteScreen() {
 
   const handleAdd = async () => {
     if (!name || !establishment?.id) return;
-    await addProduct({
-      establishment_id: establishment.id,
-      product_name: name,
-      category: category || null,
-      dlc_primary: dlc || null,
-      lot_number: lot || null,
-    });
-    setShowAddModal(false);
-    setName(''); setCategory(''); setDlc(''); setLot('');
+    try {
+      await addProduct({
+        establishment_id: establishment.id,
+        product_name: name,
+        category: category || null,
+        dlc_primary: dlc || null,
+        lot_number: lot || null,
+      });
+      setShowAddModal(false);
+      setName(''); setCategory(''); setDlc(''); setLot('');
+    } catch (e) {
+      Alert.alert("Impossible d'ajouter le produit", e instanceof Error ? e.message : 'Erreur inconnue');
+    }
   };
 
   const handleDestroy = async () => {
     if (!selectedProductId) return;
-    await destroyProduct(selectedProductId, destroyReason);
-    setShowDestroyModal(false);
-    setDestroyReason('');
+    try {
+      await destroyProduct(selectedProductId, destroyReason);
+      setShowDestroyModal(false);
+      setDestroyReason('');
+      Alert.alert('Produit détruit', 'La destruction est tracée dans le journal HACCP.');
+    } catch (e) {
+      Alert.alert('Impossible de détruire', e instanceof Error ? e.message : 'Erreur inconnue');
+    }
+  };
+
+  const handleOpenProduct = async (productId: string) => {
+    try {
+      await openProduct(productId);
+      Alert.alert('Produit marqué entamé', 'La DLC secondaire (J+3) a été calculée automatiquement.');
+    } catch (e) {
+      Alert.alert("Impossible d'ouvrir", e instanceof Error ? e.message : 'Erreur inconnue');
+    }
   };
 
   const sortedProducts = [...productsInStock].sort((a, b) => {
@@ -117,7 +135,7 @@ export default function TracabiliteScreen() {
                 {getDlcBadge(product)}
                 <View style={styles.actionButtons}>
                   {product.status === 'in_stock' && (
-                    <Pressable style={styles.actionBtn} onPress={() => openProduct(product.id)}>
+                    <Pressable style={styles.actionBtn} onPress={() => handleOpenProduct(product.id)}>
                       <PackageOpen size={16} color={Colors.primary} />
                     </Pressable>
                   )}

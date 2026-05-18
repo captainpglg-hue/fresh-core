@@ -146,8 +146,11 @@ export default function CorrectifScreen() {
             {
               text: 'OK',
               onPress: () => {
-                // Navigate back to temperatures list
-                router.dismiss(2);
+                // Always land back on the temperatures tab regardless of how
+                // deep the corrective flow was pushed (avoids the fragile
+                // hardcoded dismiss(2) which broke when entered from the
+                // equipment detail modal directly).
+                router.replace('/(tabs)/temperatures');
               },
             },
           ],

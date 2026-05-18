@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, Pressable, Switch, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import { Text } from '../../src/components/ui/Text';
 import { Card } from '../../src/components/ui/Card';
 import { Button } from '../../src/components/ui/Button';
@@ -8,7 +9,23 @@ import { Colors } from '../../src/constants/colors';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useSyncStore } from '../../src/stores/syncStore';
 import { syncManager } from '../../src/services/sync';
-import { ArrowLeft, User, Building2, Wifi, WifiOff, FileText, Bell, Info, LogOut, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, User, Building2, Wifi, WifiOff, FileText, Info, LogOut, ChevronRight } from 'lucide-react-native';
+
+const NOTIF_PREF_KEYS = {
+  temp: 'fc.notif.temp',
+  dlc: 'fc.notif.dlc',
+  cleaning: 'fc.notif.cleaning',
+  pest: 'fc.notif.pest',
+} as const;
+
+async function loadPref(key: string): Promise<boolean> {
+  const v = await SecureStore.getItemAsync(key);
+  return v === null ? true : v === '1';
+}
+
+async function savePref(key: string, value: boolean) {
+  await SecureStore.setItemAsync(key, value ? '1' : '0');
+}
 
 export default function ReglagesScreen() {
   const router = useRouter();
@@ -19,6 +36,28 @@ export default function ReglagesScreen() {
   const [notifDlc, setNotifDlc] = useState(true);
   const [notifCleaning, setNotifCleaning] = useState(true);
   const [notifPest, setNotifPest] = useState(true);
+
+  // Load persisted toggle states (SecureStore) on mount.
+  useEffect(() => {
+    (async () => {
+      const [t, d, c, p] = await Promise.all([
+        loadPref(NOTIF_PREF_KEYS.temp),
+        loadPref(NOTIF_PREF_KEYS.dlc),
+        loadPref(NOTIF_PREF_KEYS.cleaning),
+        loadPref(NOTIF_PREF_KEYS.pest),
+      ]);
+      setNotifTemp(t);
+      setNotifDlc(d);
+      setNotifCleaning(c);
+      setNotifPest(p);
+    })();
+  }, []);
+
+  const toggleAndPersist =
+    (key: string, setter: (v: boolean) => void) => (value: boolean) => {
+      setter(value);
+      void savePref(key, value);
+    };
 
   const handleSignOut = () => {
     Alert.alert('Déconnexion', 'Êtes-vous sûr de vouloir vous déconnecter ?', [
@@ -111,19 +150,19 @@ export default function ReglagesScreen() {
         <Card style={styles.notifCard}>
           <View style={styles.notifRow}>
             <Text variant="body">Alertes température</Text>
-            <Switch value={notifTemp} onValueChange={setNotifTemp} trackColor={{ true: Colors.primary }} />
+            <Switch value={notifTemp} onValueChange={toggleAndPersist(NOTIF_PREF_KEYS.temp, setNotifTemp)} trackColor={{ true: Colors.primary }} />
           </View>
           <View style={styles.notifRow}>
             <Text variant="body">Alertes DLC</Text>
-            <Switch value={notifDlc} onValueChange={setNotifDlc} trackColor={{ true: Colors.primary }} />
+            <Switch value={notifDlc} onValueChange={toggleAndPersist(NOTIF_PREF_KEYS.dlc, setNotifDlc)} trackColor={{ true: Colors.primary }} />
           </View>
           <View style={styles.notifRow}>
             <Text variant="body">Rappels nettoyage</Text>
-            <Switch value={notifCleaning} onValueChange={setNotifCleaning} trackColor={{ true: Colors.primary }} />
+            <Switch value={notifCleaning} onValueChange={toggleAndPersist(NOTIF_PREF_KEYS.cleaning, setNotifCleaning)} trackColor={{ true: Colors.primary }} />
           </View>
           <View style={styles.notifRow}>
             <Text variant="body">Rappels nuisibles</Text>
-            <Switch value={notifPest} onValueChange={setNotifPest} trackColor={{ true: Colors.primary }} />
+            <Switch value={notifPest} onValueChange={toggleAndPersist(NOTIF_PREF_KEYS.pest, setNotifPest)} trackColor={{ true: Colors.primary }} />
           </View>
         </Card>
 
