@@ -14,7 +14,7 @@ import { supabase } from '../../src/services/supabase';
 
 // Les valeurs DOIVENT matcher le CHECK de la colonne establishment_type en base
 // (supabase/migrations/001_initial_schema.sql).
-const ESTABLISHMENT_TYPES: Array<{ label: string; value: string }> = [
+const ESTABLISHMENT_TYPES: { label: string; value: string }[] = [
   { label: 'Restaurant', value: 'restaurant' },
   { label: 'Boulangerie / Pâtisserie', value: 'boulangerie' },
   { label: 'Traiteur', value: 'traiteur' },

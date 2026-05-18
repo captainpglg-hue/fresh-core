@@ -88,7 +88,7 @@ export default function ReleveScreen() {
   const equipmentName = params.name ?? 'Équipement';
   const equipmentType = params.type ?? 'other';
 
-  const { readings, addReading, getReadingsForDate } = useTemperatureStore();
+  const { addReading, getReadingsForDate } = useTemperatureStore();
   const { establishment, user } = useAuthStore();
 
   const [step, setStep] = useState<Step>('ready');

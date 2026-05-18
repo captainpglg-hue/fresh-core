@@ -31,7 +31,7 @@ export default function HuilesScreen() {
     if (establishment?.id) {
       loadData(establishment.id);
     }
-  }, [establishment?.id]);
+  }, [establishment?.id, loadData]);
 
   const handleTPMTest = (fryerId: string) => {
     setSelectedFryerId(fryerId);

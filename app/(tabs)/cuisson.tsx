@@ -35,7 +35,7 @@ export default function CuissonScreen() {
     if (establishment?.id) {
       loadRecords(establishment.id);
     }
-  }, [establishment?.id]);
+  }, [establishment?.id, loadRecords]);
 
   const handleCapture = async (uri: string) => {
     const result = await extractTemperature(uri);

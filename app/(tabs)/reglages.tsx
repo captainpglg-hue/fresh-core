@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Pressable, Switch, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, Pressable, Switch, Alert, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { Text } from '../../src/components/ui/Text';
 import { Card } from '../../src/components/ui/Card';
 import { Button } from '../../src/components/ui/Button';
+import { Input } from '../../src/components/ui/Input';
+import { IconButton } from '../../src/components/ui/IconButton';
 import { Colors } from '../../src/constants/colors';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useSyncStore } from '../../src/stores/syncStore';
 import { syncManager } from '../../src/services/sync';
-import { ArrowLeft, User, Building2, Wifi, WifiOff, FileText, Info, LogOut, ChevronRight } from 'lucide-react-native';
+import { updateLocal } from '../../src/services/database';
+import { ArrowLeft, User, Building2, Wifi, WifiOff, FileText, Info, LogOut, ChevronRight, Pencil, X } from 'lucide-react-native';
 
 const NOTIF_PREF_KEYS = {
   temp: 'fc.notif.temp',
@@ -29,8 +32,15 @@ async function savePref(key: string, value: boolean) {
 
 export default function ReglagesScreen() {
   const router = useRouter();
-  const { user, establishment, signOut } = useAuthStore();
+  const { user, establishment, signOut, setEstablishment } = useAuthStore();
   const { isOnline, pendingCount, lastSyncAt, isSyncing } = useSyncStore();
+
+  const [showEditEstab, setShowEditEstab] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editCity, setEditCity] = useState('');
+  const [editAddress, setEditAddress] = useState('');
+  const [editPostal, setEditPostal] = useState('');
+  const [savingEstab, setSavingEstab] = useState(false);
 
   const [notifTemp, setNotifTemp] = useState(true);
   const [notifDlc, setNotifDlc] = useState(true);
@@ -70,6 +80,41 @@ export default function ReglagesScreen() {
     await syncManager.startSync();
   };
 
+  const openEditEstab = () => {
+    if (!establishment) return;
+    setEditName(establishment.name);
+    setEditCity(establishment.city ?? '');
+    setEditAddress(establishment.address ?? '');
+    setEditPostal(establishment.postal_code ?? '');
+    setShowEditEstab(true);
+  };
+
+  const saveEstab = async () => {
+    if (!establishment || !editName.trim()) return;
+    setSavingEstab(true);
+    try {
+      const updated = {
+        ...establishment,
+        name: editName.trim(),
+        city: editCity.trim() || null,
+        address: editAddress.trim() || null,
+        postal_code: editPostal.trim() || null,
+      };
+      await updateLocal('establishments', establishment.id, {
+        name: updated.name,
+        city: updated.city,
+        address: updated.address,
+        postal_code: updated.postal_code,
+      });
+      setEstablishment(updated);
+      setShowEditEstab(false);
+    } catch (e) {
+      Alert.alert('Impossible de sauvegarder', e instanceof Error ? e.message : 'Erreur inconnue');
+    } finally {
+      setSavingEstab(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -92,7 +137,7 @@ export default function ReglagesScreen() {
         </Card>
 
         <Text variant="h3" style={styles.sectionTitle}>Mon établissement</Text>
-        <Card>
+        <Pressable onPress={openEditEstab}><Card>
           <View style={styles.row}>
             <Building2 size={20} color={Colors.primary} />
             <View style={styles.rowInfo}>
@@ -104,8 +149,9 @@ export default function ReglagesScreen() {
                 <Text variant="caption" color={Colors.textSecondary}>SIRET: {establishment.siret}</Text>
               )}
             </View>
+            <Pencil size={16} color={Colors.textSecondary} />
           </View>
-        </Card>
+        </Card></Pressable>
 
         <Text variant="h3" style={styles.sectionTitle}>Synchronisation</Text>
         <Card>
@@ -180,6 +226,64 @@ export default function ReglagesScreen() {
 
         <Button title="Déconnexion" onPress={handleSignOut} variant="danger" icon={<LogOut size={16} color={Colors.white} />} />
       </ScrollView>
+
+      <Modal
+        visible={showEditEstab}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowEditEstab(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text variant="h2">Modifier l&apos;établissement</Text>
+              <IconButton
+                icon={<X size={22} color={Colors.textSecondary} />}
+                onPress={() => setShowEditEstab(false)}
+              />
+            </View>
+
+            <ScrollView style={styles.modalBody} contentContainerStyle={styles.modalBodyContent}>
+              <Input
+                label="Nom de l'établissement"
+                value={editName}
+                onChangeText={setEditName}
+                placeholder="Ex: Le Provençal"
+              />
+              <Input
+                label="Adresse"
+                value={editAddress}
+                onChangeText={setEditAddress}
+                placeholder="12 rue de la Paix"
+              />
+              <Input
+                label="Code postal"
+                value={editPostal}
+                onChangeText={setEditPostal}
+                placeholder="75002"
+                keyboardType="numeric"
+              />
+              <Input
+                label="Ville"
+                value={editCity}
+                onChangeText={setEditCity}
+                placeholder="Paris"
+              />
+            </ScrollView>
+
+            <View style={styles.modalFooter}>
+              <Button title="Annuler" variant="ghost" onPress={() => setShowEditEstab(false)} />
+              <Button
+                title="Enregistrer"
+                variant="primary"
+                onPress={saveEstab}
+                loading={savingEstab}
+                disabled={!editName.trim()}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -214,4 +318,10 @@ const styles = StyleSheet.create({
   rowInfo: { flex: 1, gap: 2 },
   notifCard: { gap: 4 },
   notifRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: Colors.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#DEE2E6' },
+  modalBody: { padding: 20 },
+  modalBodyContent: { gap: 12 },
+  modalFooter: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, padding: 20, borderTopWidth: 1, borderTopColor: '#DEE2E6' },
 });

@@ -30,7 +30,7 @@ export default function NettoyageScreen() {
     if (establishment?.id) {
       initDefaultTasks(establishment.id);
     }
-  }, [establishment?.id]);
+  }, [establishment?.id, initDefaultTasks]);
 
   const completedTaskIds = new Set(todayRecords.map((r) => r.task_id));
   const completedCount = completedTaskIds.size;

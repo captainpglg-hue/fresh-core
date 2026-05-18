@@ -39,7 +39,7 @@ export default function NuisiblesScreen() {
     if (establishment?.id) {
       loadData(establishment.id);
     }
-  }, [establishment?.id]);
+  }, [establishment?.id, loadData]);
 
   const nextVisitDate = getNextVisitDate();
   const daysUntilVisit = nextVisitDate ? differenceInDays(new Date(nextVisitDate), new Date()) : null;

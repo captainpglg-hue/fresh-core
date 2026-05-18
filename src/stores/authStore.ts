@@ -16,7 +16,7 @@ interface AuthState {
   setEstablishment: (establishment: Establishment | null) => void;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set, _get) => ({
   user: null,
   session: null,
   establishment: null,

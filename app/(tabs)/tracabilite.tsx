@@ -30,7 +30,7 @@ export default function TracabiliteScreen() {
     if (establishment?.id) {
       loadProducts(establishment.id);
     }
-  }, [establishment?.id]);
+  }, [establishment?.id, loadProducts]);
 
   const { expiringSoon, expired } = getAlerts();
 

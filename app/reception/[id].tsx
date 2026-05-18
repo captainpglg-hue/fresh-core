@@ -8,6 +8,8 @@ import { Badge } from '../../src/components/ui/Badge';
 import { Button } from '../../src/components/ui/Button';
 import { Header } from '../../src/components/ui/Header';
 import { PhotoViewer } from '../../src/components/ui/PhotoViewer';
+import { EmptyState } from '../../src/components/ui/EmptyState';
+import { Package } from 'lucide-react-native';
 import { Colors } from '../../src/constants/colors';
 import { getByIdLocal, getAllLocal } from '../../src/services/database';
 import { useSupplierStore } from '../../src/stores/supplierStore';
@@ -186,6 +188,14 @@ export default function ReceptionDetailScreen() {
             {conformeCount}/{items.length} conforme{conformeCount > 1 ? 's' : ''}
           </Text>
         </View>
+
+        {items.length === 0 ? (
+          <EmptyState
+            icon={<Package size={36} color={Colors.primary} />}
+            title="Aucun produit enregistré"
+            description="Cette réception n'a pas de produits détaillés. Elle a peut-être été refusée ou ajoutée sans détail produit."
+          />
+        ) : null}
 
         {items.map((item) => {
           const tempOk = item.temperature_compliant !== false;

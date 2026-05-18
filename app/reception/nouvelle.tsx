@@ -219,7 +219,7 @@ function ProductItemCard({
   onTakeTemperature,
   onScanDLC,
 }: ProductItemCardProps) {
-  const [showManualDlc, setShowManualDlc] = useState(!item.dlc);
+  const [showManualDlc] = useState(!item.dlc);
   const dlcForm = useForm<{ dlc: Date | undefined }>({
     defaultValues: { dlc: item.dlc ?? undefined },
   });
@@ -385,7 +385,7 @@ export default function NouvelleReceptionScreen() {
 
   const [step, setStep] = useState(1);
   const [showNewSupplier, setShowNewSupplier] = useState(false);
-  const [selectedSupplierId, setSelectedSupplierId] = useState('');
+  const [, setSelectedSupplierId] = useState('');
 
   // Delivery note
   const [notePhotoUri, setNotePhotoUri] = useState<string | null>(null);

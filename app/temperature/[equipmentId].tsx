@@ -27,9 +27,9 @@ export default function TemperatureEquipmentScreen() {
   const { equipmentId } = useLocalSearchParams<{ equipmentId: string }>();
   const router = useRouter();
 
-  const { equipment, readings, addReading, getReadingsForDate } = useTemperatureStore();
+  const { equipment, addReading, getReadingsForDate } = useTemperatureStore();
   const { establishment, user } = useAuthStore();
-  const { processImage, isProcessing, result, reset: resetOCR } = useOCR();
+  const { processImage, result, reset: resetOCR } = useOCR();
 
   const [step, setStep] = useState<Step>('info');
   const [photoUri, setPhotoUri] = useState<string | null>(null);

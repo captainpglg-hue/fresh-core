@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { getAllLocal, insertLocal, updateLocal } from '../services/database';
+import { getAllLocal, insertLocal } from '../services/database';
 import type { Delivery, DeliveryItem } from '../types/database';
 
 interface DeliveryState {

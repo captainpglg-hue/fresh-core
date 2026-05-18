@@ -30,7 +30,7 @@ export default function ReceptionsScreen() {
     if (establishment?.id) {
       loadDeliveries(establishment.id, selectedDate);
     }
-  }, [establishment?.id, selectedDate]);
+  }, [establishment?.id, selectedDate, loadDeliveries]);
 
   const renderDelivery = ({ item }: { item: Delivery }) => {
     const status = STATUS_MAP[item.status] || STATUS_MAP.pending;

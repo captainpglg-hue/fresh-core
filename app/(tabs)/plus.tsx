@@ -36,13 +36,13 @@ function ModuleCard({ icon, title, description, onPress, color }: ModuleCardProp
 export default function PlusScreen() {
   const router = useRouter();
 
-  const modules: Array<{
+  const modules: {
     icon: React.ReactNode;
     title: string;
     description: string;
     route: string;
     color: string;
-  }> = [
+  }[] = [
     {
       icon: <Flame size={24} color={Colors.white} />,
       title: 'Cuisson',

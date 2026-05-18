@@ -56,7 +56,7 @@ export default function AjouterProduitScreen() {
   } | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const { control, handleSubmit, setValue, watch, formState } = useForm<ProductFormValues>({
+  const { control, handleSubmit, setValue } = useForm<ProductFormValues>({
     defaultValues: {
       productName: '',
       category: '',

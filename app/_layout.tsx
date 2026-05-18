@@ -36,7 +36,7 @@ export default function RootLayout() {
       }
     };
     init();
-  }, []);
+  }, [initialize]);
 
   useEffect(() => {
     if (isLoading || !dbReady || onboardingSeen === null) return;
@@ -56,7 +56,7 @@ export default function RootLayout() {
     } else if (isAuthenticated && inAuthGroup) {
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, isLoading, dbReady, onboardingSeen, segments]);
+  }, [isAuthenticated, isLoading, dbReady, onboardingSeen, segments, router]);
 
   return (
     <ErrorBoundary>
