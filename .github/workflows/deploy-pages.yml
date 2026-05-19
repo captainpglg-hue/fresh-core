@@ -43,7 +43,11 @@ jobs:
             fs.writeFileSync('app.json', JSON.stringify(c, null, 2));
           "
 
-      - run: npm run build:web
+      - name: Build web (uses real Supabase when secrets are set, demo mode otherwise)
+        run: npm run build:web
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
 
       - name: SPA fallback + Jekyll opt-out
         run: |
