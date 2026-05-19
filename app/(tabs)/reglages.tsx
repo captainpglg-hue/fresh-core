@@ -9,6 +9,7 @@ import { Input } from '../../src/components/ui/Input';
 import { IconButton } from '../../src/components/ui/IconButton';
 import { Colors } from '../../src/constants/colors';
 import { useAuthStore } from '../../src/stores/authStore';
+import { isDemoMode } from '../../src/services/supabase';
 import { useSyncStore } from '../../src/stores/syncStore';
 import { syncManager } from '../../src/services/sync';
 import { updateLocal } from '../../src/services/database';
@@ -70,6 +71,14 @@ export default function ReglagesScreen() {
     };
 
   const handleSignOut = () => {
+    if (isDemoMode) {
+      Alert.alert(
+        'Mode démo',
+        "Tu es connecté(e) sur un compte de démonstration. Il n'y a pas de session à fermer — la déconnexion réelle sera disponible quand l'app sera connectée à un vrai compte Fresh-Core.",
+        [{ text: 'Compris', style: 'default' }],
+      );
+      return;
+    }
     Alert.alert('Déconnexion', 'Êtes-vous sûr de vouloir vous déconnecter ?', [
       { text: 'Annuler', style: 'cancel' },
       { text: 'Déconnexion', style: 'destructive', onPress: () => signOut() },

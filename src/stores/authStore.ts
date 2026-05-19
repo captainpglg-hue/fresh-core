@@ -16,7 +16,7 @@ interface AuthState {
   setEstablishment: (establishment: Establishment | null) => void;
 }
 
-export const useAuthStore = create<AuthState>((set, _get) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   session: null,
   establishment: null,
@@ -117,6 +117,14 @@ export const useAuthStore = create<AuthState>((set, _get) => ({
   },
 
   signOut: async () => {
+    if (isDemoMode) {
+      // No real session to invalidate. Drop local state and let
+      // initialize() seed Marie Dupont right back on the next render so
+      // the demo never lands on the dead login screen.
+      set({ user: null, session: null, establishment: null, isAuthenticated: false });
+      await get().initialize();
+      return;
+    }
     await supabase.auth.signOut();
     set({ user: null, session: null, establishment: null, isAuthenticated: false });
   },
