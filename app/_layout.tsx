@@ -31,6 +31,10 @@ export default function RootLayout() {
     if (isLoading || !dbReady) return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    // /origine/<id> is the consumer-facing QR target. A customer scanning
+    // it isn't an app user, so the auth gate must let them through.
+    const inPublic = segments[0] === 'origine';
+    if (inPublic) return;
 
     if (!isAuthenticated && !inAuthGroup) {
       router.replace('/(auth)/login');
@@ -52,6 +56,7 @@ export default function RootLayout() {
         <Stack.Screen name="reception/[id]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="produit/ajouter" options={{ headerShown: false, animation: 'slide_from_right' }} />
         <Stack.Screen name="rapport/ddpp" options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name="origine/[id]" options={{ headerShown: false, animation: 'slide_from_right' }} />
         <Stack.Screen name="camera/capture" options={{ presentation: 'fullScreenModal', headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ presentation: 'modal' }} />
       </Stack>
