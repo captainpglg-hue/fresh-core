@@ -4,7 +4,12 @@
 
 ## Mission produit
 
-Application mobile HACCP pour restaurateurs. Remplace les fiches papier par un protocole photo guidé de 30 secondes. Cible : TPE de la restauration (1-10 couverts/service) qui craignent le contrôle DDPP et perdent du temps sur la paperasse.
+Plateforme mobile de **traçabilité bout-en-bout pour toute la filière agroalimentaire**. Chaque unité physique (lot) voyage à travers les maillons (producteur → transformateur → distributeur → détaillant → restaurateur → consommateur) et chaque étape est signée + chaînée par hash + ancrée sur blockchain. L'app remplace les fiches papier HACCP par un protocole photo guidé de 30 secondes pour les maillons côté établissement.
+
+**10 filières** : pêche, élevage, laitier, fromagerie, charcuterie, fruits & légumes, boulangerie, restauration, vins, autre.
+**Maillons** : producteur / pêcheur / éleveur, transformateur (criée, mareyeur, fromager, charcutier, boulanger), distributeur, détaillant (poissonnier, primeur, crémier, caviste), restaurateur, logisticien.
+
+Le cas d'usage HACCP-restaurateur reste prioritaire (le restaurateur consomme tous les flux), mais le modèle est filière-agnostique. La page publique `/origine/<code>` permet au consommateur final de scanner le QR d'un produit et de voir tout son parcours.
 
 **Objectif court terme** (2 semaines) : une **beta installable sur le téléphone Android du propriétaire du projet** (Philippe), utilisable en conditions réelles pour valider le parcours de saisie quotidien avant pilote client.
 
@@ -47,6 +52,7 @@ src/
   types/                 api, database, navigation
   utils/                 dateUtils, hash, merkle
 supabase/migrations/     001_initial_schema.sql (248 lignes)
+                         002_lot_chain.sql (lots / lot_events / lot_links + RPC get_origine)
 ```
 
 ## Modules HACCP (7)
@@ -61,7 +67,20 @@ supabase/migrations/     001_initial_schema.sql (248 lignes)
 | 6 | Huiles          | `(tabs)/huiles` (via Plus) | —                                             | oilStore               |
 | 7 | Nuisibles       | `(tabs)/nuisibles` (via Plus) | —                                          | pestStore              |
 
-Tab bar visible : Accueil, Températures, Réceptions, Nettoyage, **Plus** (sous-menu vers les 4 autres modules + Réglages).
+Tab bar visible : Accueil, Températures, Réceptions, Nettoyage, **Plus** (sous-menu vers les 4 autres modules + Réglages + **Lots**).
+
+## Traçabilité multi-maillons (Phase 0 — livrée)
+
+Couche transverse aux 7 modules HACCP, qui modélise le voyage d'un lot à travers les maillons :
+
+- **`lots`** : unité physique tracée, avec `lot_code` (encodé dans QR), `filiere`, `maillon_origin`, `head_hash`, `head_sequence`, `current_holder_id`, statut.
+- **`lot_events`** : journal append-only chaîné par hash. 6 types : `CREATE` (naissance), `TRANSFER` (handoff entre maillons), `TRANSFORM` (N parents → M enfants), `CONTROL` (mesure non-transformante : T°, DLC, nettoyage, etc.), `CONSUME` (fin nominale), `DESTROY` (refus / périmé).
+- **`lot_links`** : DAG parent → enfant pour les transformations (charcutier découpe carcasse, fromager fait des meules, cuisinier compose un plat).
+- **`blockchain_queue`** (déjà existant) : file d'ancrage Merkle root sur L2 EVM (à brancher en Phase 4).
+
+Service : `src/services/lotChain.ts` (`createLot`, `appendEvent`, `verifyLotChain`, `computeEventHash`). Store : `src/stores/lotStore.ts`. UI : `src/components/lot/{LotQRCode,LotScanner,LotTimeline}.tsx`. Écrans : `app/lot/{index,scanner,[code]}.tsx` (authentifié) + `app/origine/[code].tsx` (public, lit via RPC `get_origine`).
+
+Roadmap : Phase 1 (verticale Pêche end-to-end), Phase 2 (réplique 9 autres filières), Phase 3 (onboarding adaptatif), Phase 4 (ancrage blockchain Polygon Amoy).
 
 ## État actuel (snapshot 17 avril 2026)
 

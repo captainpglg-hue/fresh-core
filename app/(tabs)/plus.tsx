@@ -7,6 +7,7 @@ import {
   Droplet,
   Bug,
   Settings,
+  QrCode,
 } from 'lucide-react-native';
 import { Text } from '../../src/components/ui/Text';
 import { Colors } from '../../src/constants/colors';
@@ -43,6 +44,13 @@ export default function PlusScreen() {
     route: string;
     color: string;
   }> = [
+    {
+      icon: <QrCode size={24} color={Colors.white} />,
+      title: 'Lots',
+      description: 'Tracabilite multi-maillons, QR et chaine de garde',
+      route: '/lot',
+      color: Colors.primary,
+    },
     {
       icon: <Flame size={24} color={Colors.white} />,
       title: 'Cuisson',

@@ -228,6 +228,68 @@ export async function initDatabase(): Promise<void> {
       generated_at TEXT DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS lots (
+      id TEXT PRIMARY KEY,
+      lot_code TEXT UNIQUE NOT NULL,
+      filiere TEXT NOT NULL,
+      maillon_origin TEXT NOT NULL,
+      product_name TEXT NOT NULL,
+      product_category TEXT,
+      unit TEXT,
+      quantity REAL,
+      current_holder_id TEXT,
+      current_establishment_id TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
+      head_hash TEXT,
+      head_sequence INTEGER DEFAULT 0,
+      anchored_at TEXT,
+      anchor_tx_hash TEXT,
+      local_id TEXT UNIQUE,
+      synced_at TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_lots_filiere ON lots(filiere);
+    CREATE INDEX IF NOT EXISTS idx_lots_holder ON lots(current_holder_id);
+    CREATE INDEX IF NOT EXISTS idx_lots_status ON lots(status);
+
+    CREATE TABLE IF NOT EXISTS lot_events (
+      id TEXT PRIMARY KEY,
+      lot_id TEXT NOT NULL,
+      sequence INTEGER NOT NULL,
+      type TEXT NOT NULL,
+      actor_id TEXT,
+      actor_maillon TEXT,
+      establishment_id TEXT,
+      payload TEXT NOT NULL DEFAULT '{}',
+      photo_paths TEXT,
+      prev_hash TEXT,
+      hash TEXT NOT NULL,
+      signature TEXT,
+      occurred_at TEXT NOT NULL DEFAULT (datetime('now')),
+      local_id TEXT UNIQUE,
+      synced_at TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      UNIQUE (lot_id, sequence)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_lot_events_lot ON lot_events(lot_id, sequence);
+    CREATE INDEX IF NOT EXISTS idx_lot_events_type ON lot_events(type);
+    CREATE INDEX IF NOT EXISTS idx_lot_events_actor ON lot_events(actor_id);
+
+    CREATE TABLE IF NOT EXISTS lot_links (
+      id TEXT PRIMARY KEY,
+      parent_lot_id TEXT NOT NULL,
+      child_lot_id TEXT NOT NULL,
+      transform_event_id TEXT,
+      ratio REAL,
+      created_at TEXT DEFAULT (datetime('now')),
+      UNIQUE (parent_lot_id, child_lot_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_lot_links_parent ON lot_links(parent_lot_id);
+    CREATE INDEX IF NOT EXISTS idx_lot_links_child ON lot_links(child_lot_id);
+
     CREATE TABLE IF NOT EXISTS sync_queue (
       id TEXT PRIMARY KEY,
       table_name TEXT NOT NULL,
