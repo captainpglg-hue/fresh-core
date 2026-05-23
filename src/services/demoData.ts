@@ -280,6 +280,211 @@ export async function seedDemoLotChain(): Promise<void> {
   });
 }
 
+// ----------------------------------------------------------------------------
+// Seeds par filière — appelés par seedAllDemoLotChains() au bootstrap.
+// Chaque seed produit une chaîne représentative end-to-end de sa filière.
+// ----------------------------------------------------------------------------
+
+const userId = 'demo-user-001';
+const estId = 'demo-establishment-001';
+
+function daysAgo(n: number): string {
+  return new Date(Date.now() - n * 86400000).toISOString();
+}
+
+export async function seedDemoLotChainElevage(): Promise<void> {
+  const db = await getDatabase();
+  const exists = await db.getFirstAsync<{ c: number }>(
+    `SELECT COUNT(*) as c FROM lots WHERE filiere = 'elevage'`
+  );
+  if (exists && exists.c > 0) return;
+
+  // Éleveur abat un veau charolais.
+  const veau = await createLot({
+    filiere: 'elevage',
+    maillonOrigin: 'eleveur',
+    productName: 'Veau Charolais — demi-carcasse',
+    productCategory: 'viande',
+    unit: 'kg',
+    quantity: 145,
+    actorId: userId,
+    establishmentId: estId,
+    payload: {
+      id_animal: 'FR-72-018245',
+      race: 'Charolaise',
+      troupeau: 'GAEC des Prairies',
+      date_naissance: '2025-03-12',
+      date_abattage: daysAgo(6).slice(0, 10),
+      abattoir: 'FR.71.270.001 CE',
+      bio: true,
+    },
+    occurredAt: daysAgo(6),
+  });
+
+  // Transfert éleveur → charcutier.
+  await appendEvent({
+    lotId: veau.id, type: 'TRANSFER', actorId: userId, actorMaillon: 'eleveur',
+    establishmentId: estId, occurredAt: daysAgo(5),
+    payload: { from_maillon: 'eleveur', to_maillon: 'charcutier', temperature_transport: 2, transporteur: 'TransViande', duree_transport_min: 180 },
+    newHolderId: userId, newEstablishmentId: estId,
+  });
+
+  // Charcutier transforme en pièces (entrecôte, faux-filet, jarret).
+  const pieces = await createLot({
+    filiere: 'charcuterie', maillonOrigin: 'charcutier',
+    productName: 'Entrecôte Charolaise — lot pièces',
+    productCategory: 'viande', unit: 'kg', quantity: 22,
+    actorId: userId, establishmentId: estId, occurredAt: daysAgo(4),
+    payload: { recette: 'Désossage + parage', origine_viande: 'France', parent_lot_codes: [veau.lot_code] },
+  });
+  await appendEvent({
+    lotId: veau.id, type: 'TRANSFORM', actorId: userId, actorMaillon: 'charcutier',
+    establishmentId: estId, occurredAt: daysAgo(4),
+    payload: { child_lot_code: pieces.lot_code, recette: 'Désossage', duree_min: 90 },
+    parentLotIds: [veau.id],
+  });
+
+  // Charcutier → resto.
+  await appendEvent({
+    lotId: pieces.id, type: 'TRANSFER', actorId: userId, actorMaillon: 'charcutier',
+    establishmentId: estId, occurredAt: daysAgo(2),
+    payload: { from_maillon: 'charcutier', to_maillon: 'restaurateur', temperature_transport: 2, transporteur: 'Livraison directe' },
+    newHolderId: userId, newEstablishmentId: estId,
+  });
+
+  // Resto contrôle T° réception.
+  await appendEvent({
+    lotId: pieces.id, type: 'CONTROL', actorId: userId, actorMaillon: 'restaurateur',
+    establishmentId: estId, occurredAt: daysAgo(2),
+    payload: { control_type: 'temperature', value: 3, compliant: true },
+  });
+}
+
+export async function seedDemoLotChainLaitier(): Promise<void> {
+  const db = await getDatabase();
+  const exists = await db.getFirstAsync<{ c: number }>(
+    `SELECT COUNT(*) as c FROM lots WHERE filiere IN ('laitier','fromage')`
+  );
+  if (exists && exists.c > 0) return;
+
+  // Producteur trait un cheptel.
+  const lait = await createLot({
+    filiere: 'laitier', maillonOrigin: 'producteur',
+    productName: 'Lait cru entier — vache montbéliarde',
+    productCategory: 'lait', unit: 'L', quantity: 240,
+    actorId: userId, establishmentId: estId, occurredAt: daysAgo(30),
+    payload: {
+      type_lait: 'vache',
+      date_traite: daysAgo(30).slice(0, 10),
+      volume_litres: 240,
+      ferme: 'GAEC du Doubs',
+      bio: false,
+    },
+  });
+
+  // Producteur → fromager.
+  await appendEvent({
+    lotId: lait.id, type: 'TRANSFER', actorId: userId, actorMaillon: 'producteur',
+    establishmentId: estId, occurredAt: daysAgo(30),
+    payload: { from_maillon: 'producteur', to_maillon: 'fromager', temperature_transport: 4, transporteur: 'Citerne réfrigérée', duree_transport_min: 60 },
+    newHolderId: userId, newEstablishmentId: estId,
+  });
+
+  // Fromager transforme en meules (TRANSFORM).
+  const comte = await createLot({
+    filiere: 'fromage', maillonOrigin: 'fromager',
+    productName: 'Comté AOP — meule 38 kg',
+    productCategory: 'fromage', unit: 'piece', quantity: 6,
+    actorId: userId, establishmentId: estId, occurredAt: daysAgo(28),
+    payload: { recette: 'Comté AOP', duree_affinage_mois: 1, date_caillage: daysAgo(28).slice(0, 10), aop: 'Comté AOP', parent_lot_codes: [lait.lot_code] },
+  });
+  await appendEvent({
+    lotId: lait.id, type: 'TRANSFORM', actorId: userId, actorMaillon: 'fromager',
+    establishmentId: estId, occurredAt: daysAgo(28),
+    payload: { child_lot_code: comte.lot_code, recette: 'Caillage + moulage', duree_min: 240, temperature_celsius: 32 },
+    parentLotIds: [lait.id],
+  });
+
+  // 27 jours plus tard, contrôle d'affinage en cave.
+  await appendEvent({
+    lotId: comte.id, type: 'CONTROL', actorId: userId, actorMaillon: 'fromager',
+    establishmentId: estId, occurredAt: daysAgo(1),
+    payload: { control_type: 'temperature', value: 11, compliant: true, notes: 'Cave 11 °C / 95 % HR' },
+  });
+}
+
+export async function seedDemoLotChainLegumes(): Promise<void> {
+  const db = await getDatabase();
+  const exists = await db.getFirstAsync<{ c: number }>(
+    `SELECT COUNT(*) as c FROM lots WHERE filiere = 'legumes'`
+  );
+  if (exists && exists.c > 0) return;
+
+  // Maraîcher récolte.
+  const tomates = await createLot({
+    filiere: 'legumes', maillonOrigin: 'producteur',
+    productName: 'Tomates Cœur de bœuf',
+    productCategory: 'legume', unit: 'kg', quantity: 35,
+    actorId: userId, establishmentId: estId, occurredAt: daysAgo(2),
+    payload: { variete: 'Cœur de bœuf', date_recolte: daysAgo(2).slice(0, 10), parcelle: 'Parcelle Sud', bio: true },
+  });
+
+  // Producteur → primeur.
+  await appendEvent({
+    lotId: tomates.id, type: 'TRANSFER', actorId: userId, actorMaillon: 'producteur',
+    establishmentId: estId, occurredAt: daysAgo(1),
+    payload: { from_maillon: 'producteur', to_maillon: 'primeur', temperature_transport: 12, transporteur: 'Camion ferme' },
+    newHolderId: userId, newEstablishmentId: estId,
+  });
+
+  // Primeur contrôle visuel + vente partielle.
+  await appendEvent({
+    lotId: tomates.id, type: 'CONTROL', actorId: userId, actorMaillon: 'primeur',
+    establishmentId: estId, occurredAt: daysAgo(1),
+    payload: { control_type: 'visuel', compliant: true, notes: 'État impeccable, calibre 100-150 g' },
+  });
+}
+
+export async function seedDemoLotChainBoulangerie(): Promise<void> {
+  const db = await getDatabase();
+  const exists = await db.getFirstAsync<{ c: number }>(
+    `SELECT COUNT(*) as c FROM lots WHERE filiere = 'boulangerie'`
+  );
+  if (exists && exists.c > 0) return;
+
+  // Boulanger fait sa fournée.
+  const pain = await createLot({
+    filiere: 'boulangerie', maillonOrigin: 'boulanger',
+    productName: 'Baguette tradition française',
+    productCategory: 'pain', unit: 'piece', quantity: 80,
+    actorId: userId, establishmentId: estId, occurredAt: daysAgo(0),
+    payload: {
+      type_produit: 'pain',
+      date_fournee: new Date().toISOString().slice(0, 10),
+      allergenes: 'gluten',
+    },
+  });
+
+  // Contrôle fournée.
+  await appendEvent({
+    lotId: pain.id, type: 'CONTROL', actorId: userId, actorMaillon: 'boulanger',
+    establishmentId: estId, occurredAt: daysAgo(0),
+    payload: { control_type: 'temperature', value: 230, compliant: true, notes: 'T° à cœur sortie de four' },
+  });
+}
+
+/**
+ * Seed l'ensemble des chaînes démo représentatives. Idempotent par filière :
+ * chaque seed est skip si la filière a déjà des lots.
+ */
+export async function seedAllDemoLotChains(): Promise<void> {
+  await seedDemoLotChain(); // Pêche (Phase 0/1)
+  await seedDemoLotChainElevage();
+  await seedDemoLotChainLaitier();
+  await seedDemoLotChainLegumes();
+  await seedDemoLotChainBoulangerie();
+}
+
 function addDays(date: Date, days: number): string {
   const d = new Date(date);
   d.setDate(d.getDate() + days);
