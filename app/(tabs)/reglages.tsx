@@ -8,7 +8,7 @@ import { Colors } from '../../src/constants/colors';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useSyncStore } from '../../src/stores/syncStore';
 import { syncManager } from '../../src/services/sync';
-import { ArrowLeft, User, Building2, Wifi, WifiOff, FileText, Bell, Info, LogOut, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, User, Building2, Wifi, WifiOff, FileText, Bell, Info, LogOut, ChevronRight, Network } from 'lucide-react-native';
 
 export default function ReglagesScreen() {
   const router = useRouter();
@@ -92,6 +92,20 @@ export default function ReglagesScreen() {
             size="sm"
           />
         </Card>
+
+        <Text variant="h3" style={styles.sectionTitle}>Filière et maillon</Text>
+        <Pressable onPress={() => router.push('/onboarding')}>
+          <Card>
+            <View style={styles.row}>
+              <Network size={20} color={Colors.primary} />
+              <View style={styles.rowInfo}>
+                <Text variant="body">Configurer ma filière / mon maillon</Text>
+                <Text variant="caption" color={Colors.textSecondary}>Adapte le dashboard et les actions aux lots</Text>
+              </View>
+              <ChevronRight size={16} color={Colors.textSecondary} />
+            </View>
+          </Card>
+        </Pressable>
 
         <Text variant="h3" style={styles.sectionTitle}>Rapport DDPP</Text>
         <Pressable onPress={() => router.push('/rapport/ddpp')}>

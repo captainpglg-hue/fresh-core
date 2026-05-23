@@ -7,30 +7,17 @@ import { z } from 'zod';
 import { Text } from '../../src/components/ui/Text';
 import { Button } from '../../src/components/ui/Button';
 import { FormField } from '../../src/components/forms/FormField';
-import { FormPicker } from '../../src/components/forms/FormPicker';
 import { Colors } from '../../src/constants/colors';
 import { useAuthStore } from '../../src/stores/authStore';
 import { supabase } from '../../src/services/supabase';
 
-// Les valeurs DOIVENT matcher le CHECK de la colonne establishment_type en base
-// (supabase/migrations/001_initial_schema.sql).
-const ESTABLISHMENT_TYPES: Array<{ label: string; value: string }> = [
-  { label: 'Restaurant', value: 'restaurant' },
-  { label: 'Boulangerie / Patisserie', value: 'boulangerie' },
-  { label: 'Traiteur', value: 'traiteur' },
-  { label: 'Epicerie fine', value: 'epicerie' },
-  { label: 'Food truck', value: 'food_truck' },
-  { label: 'Cantine', value: 'cantine' },
-  { label: 'Hotel-restaurant', value: 'hotel_restaurant' },
-  { label: 'Autre', value: 'autre' },
-];
-
+// La filière et le maillon sont choisis ensuite via /onboarding (UX cards
+// dédiée). Cet écran reste focalisé sur les infos administratives.
 const registerSchema = z.object({
   fullName: z.string().min(2, 'Minimum 2 caracteres'),
   email: z.string().email('Email invalide'),
   password: z.string().min(8, 'Minimum 8 caracteres'),
   confirmPassword: z.string(),
-  establishmentType: z.string().min(1, 'Selectionnez un type'),
   establishmentName: z.string().min(2, 'Minimum 2 caracteres'),
   address: z.string().optional(),
   postalCode: z.string().optional(),
@@ -56,7 +43,6 @@ export default function RegisterScreen() {
       email: '',
       password: '',
       confirmPassword: '',
-      establishmentType: '',
       establishmentName: '',
       address: '',
       postalCode: '',
@@ -76,13 +62,18 @@ export default function RegisterScreen() {
         await supabase.from('establishments').insert({
           owner_id: sessionData.session.user.id,
           name: data.establishmentName,
-          establishment_type: data.establishmentType,
+          // establishment_type est conservé pour la rétrocompat schéma (CHECK).
+          // La vraie spécification métier passe par filiere/maillon, configurés
+          // ensuite via /onboarding.
+          establishment_type: 'autre',
           address: data.address || null,
           postal_code: data.postalCode || null,
           city: data.city || null,
           siret: data.siret || null,
         });
       }
+      // Onboarding adaptatif : choix filière + maillon.
+      router.replace('/onboarding');
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Erreur lors de l'inscription");
     } finally {
@@ -141,19 +132,15 @@ export default function RegisterScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Etablissement</Text>
-
-          <FormPicker
-            control={control}
-            name="establishmentType"
-            label="Type d'etablissement"
-            options={ESTABLISHMENT_TYPES}
-          />
+          <Text style={styles.sectionHelp}>
+            Tu choisiras ta filière et ton rôle dans la filière à l&apos;étape suivante.
+          </Text>
 
           <FormField
             control={control}
             name="establishmentName"
             label="Nom de l'etablissement"
-            placeholder="Mon Restaurant"
+            placeholder="Mon entreprise"
           />
 
           <FormField
@@ -247,6 +234,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  sectionHelp: {
+    fontSize: 13,
+    color: Colors.textSecondary,
     marginBottom: 4,
   },
   row: {

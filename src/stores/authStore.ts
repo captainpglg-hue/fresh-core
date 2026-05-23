@@ -1,19 +1,28 @@
 import { create } from 'zustand';
 import { supabase, isDemoMode } from '../services/supabase';
+import { getDatabase } from '../services/database';
 import type { Profile, Establishment } from '../types/database';
+import type { Filiere, Maillon } from '../types/lotChain';
 import type { Session } from '@supabase/supabase-js';
 
+// Profile/Establishment portent désormais filière + maillon depuis la
+// migration 003. On étend les types locaux ici (les types base sont mis
+// à jour séparément quand on touche le schéma).
+export type ProfileWithMaillon = Profile & { maillon?: Maillon };
+export type EstablishmentWithFiliere = Establishment & { filiere?: Filiere };
+
 interface AuthState {
-  user: Profile | null;
+  user: ProfileWithMaillon | null;
   session: Session | null;
-  establishment: Establishment | null;
+  establishment: EstablishmentWithFiliere | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   initialize: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
-  setEstablishment: (establishment: Establishment | null) => void;
+  setEstablishment: (establishment: EstablishmentWithFiliere | null) => void;
+  setFiliereMaillon: (filiere: Filiere, maillon: Maillon) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -122,4 +131,37 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   setEstablishment: (establishment) => set({ establishment }),
+
+  setFiliereMaillon: async (filiere: Filiere, maillon: Maillon) => {
+    const state = get();
+    const user = state.user;
+    const establishment = state.establishment;
+    if (!user || !establishment) return;
+
+    // Met à jour le state mémoire immédiatement (réactivité UI).
+    set({
+      user: { ...user, maillon },
+      establishment: { ...establishment, filiere },
+    });
+
+    // Persistance locale SQLite (offline-first).
+    try {
+      const db = await getDatabase();
+      await db.runAsync(`UPDATE profiles SET maillon = ? WHERE id = ?`, [maillon, user.id]);
+      await db.runAsync(`UPDATE establishments SET filiere = ? WHERE id = ?`, [filiere, establishment.id]);
+    } catch {
+      // SQLite peut ne pas avoir la colonne sur d'anciennes installs : ignore,
+      // la prochaine init la créera (CREATE TABLE IF NOT EXISTS avec defaults).
+    }
+
+    // Si Supabase configuré, miroir distant (sinon mode démo, c'est OK).
+    if (!isDemoMode) {
+      try {
+        await supabase.from('profiles').update({ maillon }).eq('id', user.id);
+        await supabase.from('establishments').update({ filiere }).eq('id', establishment.id);
+      } catch {
+        // Failure réseau → SQLite a déjà le bon état, sync_queue rattrapera.
+      }
+    }
+  },
 }));

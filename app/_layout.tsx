@@ -55,6 +55,12 @@ export default function RootLayout() {
         <Stack.Screen name="rapport/ddpp" options={{ headerShown: false, animation: 'slide_from_right' }} />
         <Stack.Screen name="camera/capture" options={{ presentation: 'fullScreenModal', headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="lot/index" options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name="lot/creer" options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name="lot/scanner" options={{ presentation: 'fullScreenModal', headerShown: false }} />
+        <Stack.Screen name="lot/action" options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name="lot/[code]" options={{ headerShown: false, animation: 'slide_from_right' }} />
+        <Stack.Screen name="origine/[code]" options={{ headerShown: false }} />
       </Stack>
     </SafeAreaProvider>
   );

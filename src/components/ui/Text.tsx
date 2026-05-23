@@ -7,11 +7,13 @@ interface Props {
   children: React.ReactNode;
   style?: StyleProp<TextStyle>;
   color?: string;
+  numberOfLines?: number;
 }
 
-export function Text({ variant = 'body', children, style, color }: Props) {
+export function Text({ variant = 'body', children, style, color, numberOfLines }: Props) {
   return (
     <BaseText
+      numberOfLines={numberOfLines}
       style={[
         styles.base,
         styles[variant],
