@@ -132,6 +132,8 @@ CREATE TABLE lot_links (
   child_lot_id UUID NOT NULL REFERENCES lots(id) ON DELETE CASCADE,
   transform_event_id UUID REFERENCES lot_events(id),
   ratio DECIMAL,
+  local_id TEXT UNIQUE,
+  synced_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE (parent_lot_id, child_lot_id)
 );

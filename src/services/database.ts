@@ -285,6 +285,8 @@ export async function initDatabase(): Promise<void> {
       child_lot_id TEXT NOT NULL,
       transform_event_id TEXT,
       ratio REAL,
+      local_id TEXT UNIQUE,
+      synced_at TEXT,
       created_at TEXT DEFAULT (datetime('now')),
       UNIQUE (parent_lot_id, child_lot_id)
     );
