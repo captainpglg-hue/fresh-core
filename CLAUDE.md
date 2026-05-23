@@ -80,7 +80,18 @@ Couche transverse aux 7 modules HACCP, qui modélise le voyage d'un lot à trave
 
 Service : `src/services/lotChain.ts` (`createLot`, `appendEvent`, `verifyLotChain`, `computeEventHash`). Store : `src/stores/lotStore.ts`. UI : `src/components/lot/{LotQRCode,LotScanner,LotTimeline}.tsx`. Écrans : `app/lot/{index,scanner,[code]}.tsx` (authentifié) + `app/origine/[code].tsx` (public, lit via RPC `get_origine`).
 
-Roadmap : Phase 1 (verticale Pêche end-to-end), Phase 2 (réplique 9 autres filières), Phase 3 (onboarding adaptatif), Phase 4 (ancrage blockchain Polygon Amoy).
+Roadmap : ~~Phase 1 (verticale Pêche end-to-end)~~ ✅, ~~Phase 2 (réplique 9 autres filières)~~ ✅, ~~Phase 3 (onboarding adaptatif)~~ ✅, ~~Phase 4 (ancrage blockchain Polygon Amoy)~~ ✅.
+
+## Ancrage blockchain (Phase 4 — livrée)
+
+- **Contrat** : `contracts/FreshCoreAnchor.sol` — registre Merkle roots owner-only, ~50k gas / batch (~0.005 MATIC à 30 gwei). Cible Polygon Amoy (testnet) ou Polygon PoS mainnet.
+- **Merkle util** : `src/utils/merkle.ts` — keccak256, sorted-pair hash (OpenZeppelin compat), `buildMerkleRoot` / `buildMerkleProof` / `verifyMerkleProof`. Feuille canonique = `keccak256("<lot_code>|<head_sequence>|<head_hash>")`.
+- **Batcher** : `src/services/anchor.ts` — `pickLotsToAnchor` (lots head_hash défini, anchored_at null), `anchorBatch` (build root, send tx, update DB), `proofForLot` (Merkle proof off-chain pour la page publique).
+- **CLI** : `scripts/anchor-batch.ts` + `npm run anchor [-- --dry-run]`. Variables d'env : `FRESHCORE_ANCHOR_RPC_URL`, `FRESHCORE_ANCHOR_CONTRACT`, `FRESHCORE_ANCHOR_PRIVATE_KEY`. À cron-er toutes les 15 min.
+- **UI publique** : `app/origine/[code].tsx` affiche `anchor_tx_hash` + Merkle root + nb siblings du proof quand le lot est ancré. Vérification d'inclusion 100 % côté client via `verifyMerkleProof`.
+- **Doc déploiement** : `contracts/README.md`.
+
+Note dépendance : `ethers` est réintroduit (justifié par cette phase, utilisé uniquement par `anchor.ts` + le script CLI ; tree-shaké côté mobile car non-référencé dans les écrans natifs).
 
 ## État actuel (snapshot 17 avril 2026)
 

@@ -10,6 +10,7 @@ import { Badge } from '../../src/components/ui/Badge';
 import { Colors } from '../../src/constants/colors';
 import { LotTimeline } from '../../src/components/lot/LotTimeline';
 import { getLotByCode, getLotEvents, getLotParents } from '../../src/services/lotChain';
+import { proofForLot } from '../../src/services/anchor';
 import { supabase } from '../../src/services/supabase';
 import type { Lot, LotEvent } from '../../src/types/lotChain';
 
@@ -179,6 +180,7 @@ export default function OrigineScreen() {
               text={lot.anchored_at ? 'Ancré blockchain' : 'Ancrage en attente'}
             />
           </View>
+          {lot.anchor_tx_hash ? <AnchorDetails lotId={lot.id} txHash={lot.anchor_tx_hash} /> : null}
         </Card>
 
         {parents.length > 0 ? (
@@ -206,6 +208,33 @@ export default function OrigineScreen() {
   );
 }
 
+function AnchorDetails({ lotId, txHash }: { lotId: string; txHash: string }) {
+  const [proof, setProof] = useState<{ leaf: string; proof: string[]; root: string } | null>(null);
+  useEffect(() => {
+    proofForLot(lotId)
+      .then((p) => setProof(p as { leaf: string; proof: string[]; root: string } | null))
+      .catch(() => setProof(null));
+  }, [lotId]);
+
+  return (
+    <View style={styles.anchorBox}>
+      <Text variant="caption" color={Colors.textSecondary}>Transaction blockchain</Text>
+      <Text variant="caption" style={styles.hash}>{txHash}</Text>
+      {proof ? (
+        <>
+          <Text variant="caption" color={Colors.textSecondary} style={styles.proofTitle}>
+            Merkle root du batch
+          </Text>
+          <Text variant="caption" style={styles.hash}>{proof.root}</Text>
+          <Text variant="caption" color={Colors.textSecondary}>
+            Proof : {proof.proof.length} siblings — vérifiable client-side via merkle.ts
+          </Text>
+        </>
+      ) : null}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   scroll: { padding: 16, gap: 16 },
@@ -225,4 +254,6 @@ const styles = StyleSheet.create({
   parentRow: { flexDirection: 'row', justifyContent: 'space-between' },
   timelineCard: { padding: 16 },
   sectionTitle: { marginBottom: 8 },
+  anchorBox: { marginTop: 12, padding: 12, backgroundColor: Colors.background, borderRadius: 8, gap: 4 },
+  proofTitle: { marginTop: 8 },
 });
