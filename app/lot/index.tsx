@@ -2,7 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Package, QrCode, Scan } from 'lucide-react-native';
+import { Package, Plus, QrCode, Scan } from 'lucide-react-native';
 import { Header } from '../../src/components/ui/Header';
 import { Text } from '../../src/components/ui/Text';
 import { Card } from '../../src/components/ui/Card';
@@ -11,12 +11,14 @@ import { Badge } from '../../src/components/ui/Badge';
 import { Colors } from '../../src/constants/colors';
 import { useLotStore } from '../../src/stores/lotStore';
 import { useAuthStore } from '../../src/stores/authStore';
+import { useMaillonContext } from '../../src/hooks/useMaillonContext';
 import type { Lot } from '../../src/types/lotChain';
 
 export default function LotsScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { lots, loading, loadHeldByUser } = useLotStore();
+  const { maillonConfig, filiereConfig } = useMaillonContext();
 
   const load = useCallback(() => {
     if (user?.id) loadHeldByUser(user.id);
@@ -28,14 +30,34 @@ export default function LotsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Header title="Mes lots" subtitle="Traçabilité bout en bout" showBack onBack={() => router.back()} />
+      <Header
+        title="Mes lots"
+        subtitle={`${filiereConfig.label} · ${maillonConfig.label}`}
+        showBack
+        onBack={() => router.back()}
+      />
       <View style={styles.actions}>
-        <Button
-          title="Scanner un lot"
-          onPress={() => router.push('/lot/scanner')}
-          icon={<Scan size={18} color={Colors.white} />}
-          fullWidth
-        />
+        <View style={styles.actionsRow}>
+          {maillonConfig.canCreate ? (
+            <View style={styles.actionItem}>
+              <Button
+                title="Nouveau lot"
+                onPress={() => router.push('/lot/creer')}
+                icon={<Plus size={18} color={Colors.white} />}
+                fullWidth
+              />
+            </View>
+          ) : null}
+          <View style={styles.actionItem}>
+            <Button
+              title="Scanner"
+              onPress={() => router.push('/lot/scanner')}
+              icon={<Scan size={18} color={Colors.white} />}
+              variant={maillonConfig.canCreate ? 'secondary' : 'primary'}
+              fullWidth
+            />
+          </View>
+        </View>
       </View>
       <FlatList
         data={lots}
@@ -88,6 +110,8 @@ function LotRow({ lot, onPress }: { lot: Lot; onPress: () => void }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   actions: { paddingHorizontal: 16, paddingVertical: 12 },
+  actionsRow: { flexDirection: 'row', gap: 12 },
+  actionItem: { flex: 1 },
   list: { paddingHorizontal: 16, paddingBottom: 24, gap: 12 },
   row: { flexDirection: 'row', alignItems: 'center', padding: 12 },
   iconWrap: {

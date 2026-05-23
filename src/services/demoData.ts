@@ -1,4 +1,5 @@
 import { getDatabase } from './database';
+import { createLot, appendEvent } from './lotChain';
 
 export async function seedDemoData(): Promise<void> {
   const db = await getDatabase();
@@ -114,6 +115,169 @@ export async function seedDemoData(): Promise<void> {
       [pc.id, estId, pc.type, pc.name, userId, now, pc.id, now]
     );
   }
+}
+
+/**
+ * Seed une chaîne de traçabilité complète Pêche maritime end-to-end :
+ *   Pêcheur → Mareyeur (filets) → Poissonnier → Restaurateur (tartare)
+ *
+ * Permet de présenter immédiatement la fonctionnalité multi-maillons en
+ * démo, et sert de fixture aux tests manuels. Idempotent : skip si déjà seedé.
+ */
+export async function seedDemoLotChain(): Promise<void> {
+  const db = await getDatabase();
+  const existing = await db.getFirstAsync<{ count: number }>(`SELECT COUNT(*) as count FROM lots`);
+  if (existing && existing.count > 0) return;
+
+  const userId = 'demo-user-001';
+  const estId = 'demo-establishment-001';
+
+  // 1. Pêcheur sort un thon de l'eau (FAO-37, ligne).
+  const thon = await createLot({
+    filiere: 'peche',
+    maillonOrigin: 'pecheur',
+    productName: 'Thon rouge entier',
+    productCategory: 'poisson',
+    unit: 'kg',
+    quantity: 48,
+    actorId: userId,
+    establishmentId: estId,
+    payload: {
+      espece: 'Thunnus thynnus',
+      zone_peche: 'FAO-37',
+      methode: 'ligne',
+      bateau: 'F/V Marie-Galante CC-12345',
+      date_capture: new Date(Date.now() - 4 * 86400000).toISOString().slice(0, 10),
+    },
+    occurredAt: new Date(Date.now() - 4 * 86400000).toISOString(),
+  });
+
+  // 2. Transfert pêcheur → mareyeur en glace.
+  await appendEvent({
+    lotId: thon.id,
+    type: 'TRANSFER',
+    actorId: userId,
+    actorMaillon: 'pecheur',
+    establishmentId: estId,
+    payload: {
+      from_maillon: 'pecheur',
+      to_maillon: 'mareyeur',
+      temperature_transport: 1,
+      duree_transport_min: 90,
+      transporteur: 'Transports Maritimes Sud',
+    },
+    occurredAt: new Date(Date.now() - 4 * 86400000 + 3600000).toISOString(),
+    newHolderId: userId, // démo mono-utilisateur
+    newEstablishmentId: estId,
+  });
+
+  // 3. Mareyeur transforme en 4 lots de filets (TRANSFORM).
+  const filets = await createLot({
+    filiere: 'peche',
+    maillonOrigin: 'mareyeur',
+    productName: 'Filets de thon rouge',
+    productCategory: 'poisson',
+    unit: 'kg',
+    quantity: 18,
+    actorId: userId,
+    establishmentId: estId,
+    payload: {
+      espece: 'Thunnus thynnus',
+      recette: 'Filetage manuel, mise sous vide',
+      parent_lot_codes: [thon.lot_code],
+    },
+    occurredAt: new Date(Date.now() - 3 * 86400000).toISOString(),
+  });
+  await appendEvent({
+    lotId: thon.id,
+    type: 'TRANSFORM',
+    actorId: userId,
+    actorMaillon: 'mareyeur',
+    establishmentId: estId,
+    payload: {
+      child_lot_code: filets.lot_code,
+      recette: 'Filetage manuel, rendement 37 %',
+      duree_min: 45,
+    },
+    parentLotIds: [thon.id],
+    occurredAt: new Date(Date.now() - 3 * 86400000).toISOString(),
+  });
+
+  // 4. Mareyeur livre poissonnier (transfert avec T° respectée).
+  await appendEvent({
+    lotId: filets.id,
+    type: 'TRANSFER',
+    actorId: userId,
+    actorMaillon: 'mareyeur',
+    establishmentId: estId,
+    payload: {
+      from_maillon: 'mareyeur',
+      to_maillon: 'poissonnier',
+      temperature_transport: 2,
+      duree_transport_min: 120,
+      transporteur: 'STEF',
+    },
+    occurredAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+    newHolderId: userId,
+    newEstablishmentId: estId,
+  });
+
+  // 5. Poissonnier contrôle T° vitrine.
+  await appendEvent({
+    lotId: filets.id,
+    type: 'CONTROL',
+    actorId: userId,
+    actorMaillon: 'poissonnier',
+    establishmentId: estId,
+    payload: { control_type: 'temperature', value: 2, compliant: true },
+    occurredAt: new Date(Date.now() - 86400000 - 7200000).toISOString(),
+  });
+
+  // 6. Poissonnier transfère au resto.
+  await appendEvent({
+    lotId: filets.id,
+    type: 'TRANSFER',
+    actorId: userId,
+    actorMaillon: 'poissonnier',
+    establishmentId: estId,
+    payload: {
+      from_maillon: 'poissonnier',
+      to_maillon: 'restaurateur',
+      temperature_transport: 2,
+      transporteur: 'Livraison locale',
+    },
+    occurredAt: new Date(Date.now() - 86400000).toISOString(),
+    newHolderId: userId,
+    newEstablishmentId: estId,
+  });
+
+  // 7. Resto compose un tartare (TRANSFORM enfant) et le sert (CONSUME).
+  const tartare = await createLot({
+    filiere: 'restauration',
+    maillonOrigin: 'restaurateur',
+    productName: 'Tartare de thon rouge, condiments',
+    productCategory: 'plat',
+    unit: 'piece',
+    quantity: 12,
+    actorId: userId,
+    establishmentId: estId,
+    payload: {
+      recette: 'Tartare au couteau, échalote, citron, huile olive',
+      service: 'midi',
+      parent_lot_codes: [filets.lot_code],
+    },
+    occurredAt: new Date(Date.now() - 3600000).toISOString(),
+  });
+  await appendEvent({
+    lotId: filets.id,
+    type: 'TRANSFORM',
+    actorId: userId,
+    actorMaillon: 'restaurateur',
+    establishmentId: estId,
+    payload: { child_lot_code: tartare.lot_code, recette: 'Tartare 12 portions' },
+    parentLotIds: [filets.id],
+    occurredAt: new Date(Date.now() - 3600000).toISOString(),
+  });
 }
 
 function addDays(date: Date, days: number): string {

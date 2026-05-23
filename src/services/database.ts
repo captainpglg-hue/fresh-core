@@ -22,6 +22,7 @@ export async function initDatabase(): Promise<void> {
       email TEXT NOT NULL,
       full_name TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'owner',
+      maillon TEXT NOT NULL DEFAULT 'restaurateur',
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
     );
@@ -35,6 +36,7 @@ export async function initDatabase(): Promise<void> {
       postal_code TEXT,
       siret TEXT,
       establishment_type TEXT NOT NULL,
+      filiere TEXT NOT NULL DEFAULT 'restauration',
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
     );

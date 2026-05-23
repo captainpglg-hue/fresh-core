@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAuthStore } from '../src/stores/authStore';
 import { initDatabase } from '../src/services/database';
-import { seedDemoData } from '../src/services/demoData';
+import { seedDemoData, seedDemoLotChain } from '../src/services/demoData';
 
 export default function RootLayout() {
   const { isAuthenticated, isLoading, initialize } = useAuthStore();
@@ -17,6 +17,7 @@ export default function RootLayout() {
       try {
         await initDatabase();
         await seedDemoData();
+        await seedDemoLotChain();
         setDbReady(true);
         await initialize();
       } catch (error: unknown) {

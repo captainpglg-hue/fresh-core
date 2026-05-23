@@ -9,7 +9,7 @@ import {
 import { Colors } from '../../constants/colors';
 
 interface Props {
-  label: string;
+  label?: string;
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
@@ -38,7 +38,7 @@ export function Input({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
+      {label ? <Text style={styles.label}>{label}</Text> : null}
       <View
         style={[
           styles.fieldWrapper,
