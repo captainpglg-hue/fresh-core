@@ -1,5 +1,4 @@
 import { ethers } from 'ethers';
-import { getDatabase } from './database';
 import {
   hashLeaf,
   buildMerkleRoot,
@@ -17,12 +16,30 @@ const ANCHOR_ABI = [
   'event RootAnchored(uint256 indexed batchId, bytes32 indexed root, uint256 leafCount, uint256 timestamp)',
 ];
 
+/**
+ * Adapter de persistance — abstrait l'origine des données pour rendre
+ * anchor.ts utilisable :
+ *  - côté mobile (préview "ancrage en attente") via SQLite (expo-sqlite)
+ *  - côté serveur batcher (cron prod) via Postgres (node-postgres)
+ *
+ * Implémentations fournies :
+ *  - `sqliteLotStore` (ce fichier) — pour usage in-app
+ *  - Adapter Postgres inline dans scripts/anchor-batch.ts — pour cron prod
+ */
+export interface LotStore {
+  pickLotsToAnchor(batchSize: number): Promise<Lot[]>;
+  markLotsAnchored(lotIds: string[], txHash: string, isoTimestamp: string): Promise<void>;
+  getLotById(lotId: string): Promise<Lot | null>;
+  getLotsByAnchorTx(anchorTxHash: string, limit: number): Promise<Lot[]>;
+}
+
 export interface AnchorConfig {
   rpcUrl: string;             // ex: https://rpc-amoy.polygon.technology
   contractAddress: string;    // adresse du contrat déployé
   privateKey: string;         // clé du batcher (NE JAMAIS commit)
   batchSize?: number;         // nombre max de lots ancrés par batch
   dryRun?: boolean;           // si true : calcule mais n'envoie pas la tx
+  store: LotStore;            // adapter persistance (sqlite ou postgres)
 }
 
 export interface AnchorBatchResult {
@@ -49,49 +66,66 @@ export function lotToLeaf(lot: Pick<Lot, 'lot_code' | 'head_sequence' | 'head_ha
 }
 
 /**
- * Récupère les lots non ancrés (head_hash défini, anchored_at null) à inclure
- * dans le prochain batch. Limité par batchSize pour borner la taille on-chain.
+ * Adapter SQLite (in-app) — n'importe `expo-sqlite` qu'à la demande, pour
+ * que le module reste utilisable côté Node (batcher serveur) sans tirer
+ * une dépendance React Native qui n'a rien à faire là.
  */
-export async function pickLotsToAnchor(batchSize = 256): Promise<Lot[]> {
-  const db = await getDatabase();
-  const rows = await db.getAllAsync(
-    `SELECT * FROM lots
-     WHERE head_hash IS NOT NULL
-       AND anchored_at IS NULL
-       AND head_sequence > 0
-     ORDER BY created_at ASC
-     LIMIT ?`,
-    [batchSize]
-  );
-  return rows as Lot[];
+export function sqliteLotStore(): LotStore {
+  return {
+    async pickLotsToAnchor(batchSize: number) {
+      const { getDatabase } = await import('./database');
+      const db = await getDatabase();
+      const rows = await db.getAllAsync(
+        `SELECT * FROM lots
+         WHERE head_hash IS NOT NULL
+           AND anchored_at IS NULL
+           AND head_sequence > 0
+         ORDER BY created_at ASC
+         LIMIT ?`,
+        [batchSize]
+      );
+      return rows as Lot[];
+    },
+    async markLotsAnchored(lotIds: string[], txHash: string, isoTimestamp: string) {
+      if (lotIds.length === 0) return;
+      const { getDatabase } = await import('./database');
+      const db = await getDatabase();
+      const placeholders = lotIds.map(() => '?').join(',');
+      await db.runAsync(
+        `UPDATE lots SET anchored_at = ?, anchor_tx_hash = ? WHERE id IN (${placeholders})`,
+        [isoTimestamp, txHash, ...lotIds]
+      );
+    },
+    async getLotById(lotId: string) {
+      const { getDatabase } = await import('./database');
+      const db = await getDatabase();
+      const row = await db.getFirstAsync(`SELECT * FROM lots WHERE id = ?`, [lotId]);
+      return (row as Lot | null) ?? null;
+    },
+    async getLotsByAnchorTx(anchorTxHash: string, limit: number) {
+      const { getDatabase } = await import('./database');
+      const db = await getDatabase();
+      const rows = await db.getAllAsync(
+        `SELECT * FROM lots WHERE anchor_tx_hash = ? ORDER BY created_at ASC LIMIT ?`,
+        [anchorTxHash, limit]
+      );
+      return rows as Lot[];
+    },
+  };
 }
 
 /**
- * Marque une liste de lots comme ancrés en mettant à jour anchored_at +
- * anchor_tx_hash. Appelé après la confirmation de la tx blockchain.
- */
-async function markLotsAnchored(lotIds: string[], txHash: string, timestamp: string): Promise<void> {
-  if (lotIds.length === 0) return;
-  const db = await getDatabase();
-  const placeholders = lotIds.map(() => '?').join(',');
-  await db.runAsync(
-    `UPDATE lots SET anchored_at = ?, anchor_tx_hash = ? WHERE id IN (${placeholders})`,
-    [timestamp, txHash, ...lotIds]
-  );
-}
-
-/**
- * Batcher principal : query lots, build Merkle, call contract, update DB.
+ * Batcher principal : query lots via store, build Merkle, call contract, update store.
  *
  * - En dryRun : retourne le root + leafCount sans envoyer la tx (utile pour
  *   pré-visualisation / coût estimé).
- * - Sinon : envoie anchorRoot(), attend la confirmation, met à jour la DB.
+ * - Sinon : envoie anchorRoot(), attend la confirmation, met à jour le store.
  *
  * Les erreurs réseau / gas sont remontées telles quelles — le caller (cron,
  * CLI, UI bouton "Ancrer maintenant") décide de retry.
  */
 export async function anchorBatch(config: AnchorConfig): Promise<AnchorBatchResult> {
-  const lots = await pickLotsToAnchor(config.batchSize ?? 256);
+  const lots = await config.store.pickLotsToAnchor(config.batchSize ?? 256);
   if (lots.length === 0) {
     return {
       batchId: null,
@@ -142,7 +176,7 @@ export async function anchorBatch(config: AnchorConfig): Promise<AnchorBatchResu
   }
 
   const ts = new Date().toISOString();
-  await markLotsAnchored(lots.map((l) => l.id), tx.hash, ts);
+  await config.store.markLotsAnchored(lots.map((l) => l.id), tx.hash, ts);
 
   const explorerUrl = explorerTxUrl(config.rpcUrl, tx.hash);
 
@@ -162,21 +196,17 @@ export async function anchorBatch(config: AnchorConfig): Promise<AnchorBatchResu
  * page publique /origine/<code> qui veut prouver l'inclusion dans le root
  * on-chain. À usage off-chain uniquement (le contrat n'expose pas verify).
  */
-export async function proofForLot(lotId: string, batchSize = 256): Promise<{
-  leaf: Hex;
-  proof: Hex[];
-  root: Hex;
-} | null> {
+export async function proofForLot(
+  lotId: string,
+  store: LotStore = sqliteLotStore(),
+  batchSize = 256,
+): Promise<{ leaf: Hex; proof: Hex[]; root: Hex } | null> {
   // Reconstruit le batch d'ancrage du lot : on regroupe tous les lots ancrés
   // avec le même anchor_tx_hash, dans l'ordre original (created_at ASC).
-  const db = await getDatabase();
-  const lot = (await db.getFirstAsync(`SELECT * FROM lots WHERE id = ?`, [lotId])) as Lot | null;
+  const lot = await store.getLotById(lotId);
   if (!lot || !lot.anchor_tx_hash) return null;
 
-  const batchLots = (await db.getAllAsync(
-    `SELECT * FROM lots WHERE anchor_tx_hash = ? ORDER BY created_at ASC LIMIT ?`,
-    [lot.anchor_tx_hash, batchSize]
-  )) as Lot[];
+  const batchLots = await store.getLotsByAnchorTx(lot.anchor_tx_hash, batchSize);
   if (batchLots.length === 0) return null;
 
   const leaves = batchLots.map(lotToLeaf);
