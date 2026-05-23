@@ -1,0 +1,59 @@
+name: Anchor lots on blockchain
+
+# Cron toutes les 15 min. Lit les lots non ancrés (head_hash défini,
+# anchored_at NULL) depuis la base Supabase, calcule un Merkle root, envoie
+# une tx FreshCoreAnchor.anchorRoot(...) sur Polygon (Amoy ou mainnet).
+#
+# Setup requis (Settings → Secrets and variables → Actions) :
+#   FRESHCORE_DATABASE_URL       — postgresql://... (pooler Supabase)
+#   FRESHCORE_ANCHOR_RPC_URL     — https://rpc-amoy.polygon.technology (ou autre L2)
+#   FRESHCORE_ANCHOR_CONTRACT    — adresse du contrat FreshCoreAnchor déployé
+#   FRESHCORE_ANCHOR_PRIVATE_KEY — clé privée du wallet batcher (fund avec ~5 MATIC)
+#
+# Le workflow peut aussi être déclenché manuellement (workflow_dispatch) avec
+# option --dry-run pour preview sans envoyer de tx.
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'  # toutes les 15 minutes
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (calcule le root sans envoyer la tx)'
+        type: boolean
+        default: false
+      batch_size:
+        description: 'Nombre max de lots par batch'
+        default: '256'
+
+concurrency:
+  group: anchor-prod
+  cancel-in-progress: false  # ne JAMAIS interrompre un anchor en cours
+
+jobs:
+  anchor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --omit=dev=false --prefer-offline --no-audit
+        # On a besoin des devDeps : tsx, @types/pg
+
+      - name: Run anchor
+        env:
+          FRESHCORE_DATABASE_URL: ${{ secrets.FRESHCORE_DATABASE_URL }}
+          FRESHCORE_ANCHOR_RPC_URL: ${{ secrets.FRESHCORE_ANCHOR_RPC_URL }}
+          FRESHCORE_ANCHOR_CONTRACT: ${{ secrets.FRESHCORE_ANCHOR_CONTRACT }}
+          FRESHCORE_ANCHOR_PRIVATE_KEY: ${{ secrets.FRESHCORE_ANCHOR_PRIVATE_KEY }}
+        run: |
+          ARGS=""
+          if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          if [ -n "${{ inputs.batch_size }}" ]; then ARGS="$ARGS --batch-size ${{ inputs.batch_size }}"; fi
+          npm run anchor -- $ARGS

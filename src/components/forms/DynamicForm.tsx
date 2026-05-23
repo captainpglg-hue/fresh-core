@@ -140,7 +140,10 @@ function SelectField({
   const [open, setOpen] = useState(false);
   const selected = options.find((o) => o.value === value);
 
-  if (Platform.OS === 'android') {
+  // Android + Web : picker inline (RN-Web rend un <select> HTML natif,
+  // accessible clavier + screen reader + automatisable par Playwright).
+  // iOS : modal sheet pour respecter les conventions plateforme.
+  if (Platform.OS === 'android' || Platform.OS === 'web') {
     return (
       <View style={styles.androidPickerWrap}>
         <Picker selectedValue={value} onValueChange={(v) => onChange(String(v))}>
