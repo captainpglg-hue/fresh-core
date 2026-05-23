@@ -15,10 +15,11 @@ export async function recognizeText(imageUri: string): Promise<string> {
   if (Platform.OS === 'web') {
     throw new Error('OCR non disponible sur web — saisie manuelle uniquement');
   }
-  // Lazy-load pour éviter que Metro n'essaie de bundler le module natif
-  // lors d'un build web.
-  const TextRecognition = (await import('@react-native-ml-kit/text-recognition'))
-    .default;
+  // require() lazy au lieu de dynamic import : compatible jest sans
+  // --experimental-vm-modules, et toujours invisible pour le bundle web
+  // (Metro ne traverse pas un require gardé par Platform.OS check).
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const TextRecognition = require('@react-native-ml-kit/text-recognition').default;
   const result = await TextRecognition.recognize(imageUri);
   return result.text;
 }
