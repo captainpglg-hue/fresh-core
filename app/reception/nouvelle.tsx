@@ -33,7 +33,7 @@ import {
   extractLotNumber,
 } from '../../src/services/ocr';
 
-// ── Types ──────────────────────────────────────────────────────────────────
+// ── Types ───────────────────────────────────────────────────────────────
 
 interface SupplierFormValues {
   existingSupplierId: string;
@@ -124,7 +124,7 @@ function createEmptyItem(id: string): DeliveryItemForm {
   };
 }
 
-// ── Step Indicator ─────────────────────────────────────────────────────────
+// ── Step Indicator ────────────────────────────────────────────────────────
 
 interface StepIndicatorProps {
   currentStep: number;
@@ -202,7 +202,7 @@ const stepStyles = StyleSheet.create({
   label: { flex: 1, textAlign: 'center', fontSize: 11 },
 });
 
-// ── Product Item Component ─────────────────────────────────────────────────
+// ── Product Item Component ───────────────────────────────────────────────────
 
 interface ProductItemCardProps {
   item: DeliveryItemForm;
@@ -223,6 +223,23 @@ function ProductItemCard({
   const dlcForm = useForm<{ dlc: Date | undefined }>({
     defaultValues: { dlc: item.dlc ?? undefined },
   });
+
+  // Le FormDatePicker écrit dans son propre form interne. Sans ce
+  // subscribe la valeur ne remontait jamais dans l'item parent et la
+  // DLC saisie manuellement était silencieusement perdue à
+  // l'acceptation de la livraison. On propage manuellement vers
+  // l'item parent et on remplit aussi dlcRaw pour afficher le badge.
+  const manualDlc = dlcForm.watch('dlc');
+  useEffect(() => {
+    if (!manualDlc) return;
+    if (item.dlc && manualDlc.getTime() === item.dlc.getTime()) return;
+    onUpdate(index, {
+      dlc: manualDlc,
+      dlcRaw: `${manualDlc.getDate().toString().padStart(2, '0')}/${(manualDlc.getMonth() + 1)
+        .toString()
+        .padStart(2, '0')}/${manualDlc.getFullYear()}`,
+    });
+  }, [manualDlc, item.dlc, index, onUpdate]);
 
   return (
     <Card style={styles.productCard}>
@@ -373,7 +390,7 @@ function ProductItemCard({
   );
 }
 
-// ── Main Screen ────────────────────────────────────────────────────────────
+// ── Main Screen ───────────────────────────────────────────────────────────────────
 
 export default function NouvelleReceptionScreen() {
   const router = useRouter();
@@ -425,7 +442,7 @@ export default function NouvelleReceptionScreen() {
     }
   }, [establishment?.id, loadSuppliers]);
 
-  // ── Camera handling ────────────────────────────────────────────────────
+  // ── Camera handling ─────────────────────────────────────────────────────
 
   const handleCameraCapture = useCallback(
     async (uri: string) => {
@@ -505,7 +522,7 @@ export default function NouvelleReceptionScreen() {
     [cameraTarget],
   );
 
-  // ── Step 1 handlers ──────────────────────────────────────────────────
+  // ── Step 1 handlers ───────────────────────────────────────────────────────
 
   const handleSelectExistingSupplier = useCallback(() => {
     const suppId = supplierForm.getValues('existingSupplierId');
@@ -533,7 +550,7 @@ export default function NouvelleReceptionScreen() {
     setStep(2);
   }, [supplierForm, establishment?.id, addSupplier, startDelivery]);
 
-  // ── Step 3: item management ──────────────────────────────────────────
+  // ── Step 3: item management ────────────────────────────────────────────────
 
   const updateItem = useCallback(
     (index: number, updates: Partial<DeliveryItemForm>) => {
@@ -560,7 +577,7 @@ export default function NouvelleReceptionScreen() {
     setShowCamera(true);
   }, []);
 
-  // ── Step 4: validation ───────────────────────────────────────────────
+  // ── Step 4: validation ───────────────────────────────────────────────────────
 
   const handleAccept = useCallback(async () => {
     for (const item of items) {
@@ -591,7 +608,7 @@ export default function NouvelleReceptionScreen() {
     router.back();
   }, [refusalForm, refusalPhotoUri, refuseDelivery, router]);
 
-  // ── Camera screen ────────────────────────────────────────────────────
+  // ── Camera screen ─────────────────────────────────────────────────────────
 
   if (showCamera) {
     return (
@@ -602,7 +619,7 @@ export default function NouvelleReceptionScreen() {
     );
   }
 
-  // ── OCR Processing overlay ───────────────────────────────────────────
+  // ── OCR Processing overlay ────────────────────────────────────────────────────
 
   if (ocrProcessing) {
     return (
@@ -620,7 +637,7 @@ export default function NouvelleReceptionScreen() {
     );
   }
 
-  // ── Supplier options for picker ──────────────────────────────────────
+  // ── Supplier options for picker ────────────────────────────────────────────────
 
   const supplierOptions = suppliers.map((s) => ({
     label: s.name,
@@ -631,7 +648,7 @@ export default function NouvelleReceptionScreen() {
     ? checkSanitaryApproval(supplierForm.watch('existingSupplierId'))
     : 'valid';
 
-  // ── Conformity stats for step 4 ─────────────────────────────────────
+  // ── Conformity stats for step 4 ───────────────────────────────────────────────
 
   const validItems = items.filter((i) => i.productName.trim().length > 0);
   const conformeCount = validItems.filter((item) => {
@@ -641,7 +658,7 @@ export default function NouvelleReceptionScreen() {
     return tempOk && packOk && visualOk;
   }).length;
 
-  // ── Render ───────────────────────────────────────────────────────────
+  // ── Render ─────────────────────────────────────────────────────────────────────
 
   return (
     <SafeAreaView style={styles.container}>
@@ -780,7 +797,7 @@ export default function NouvelleReceptionScreen() {
           </View>
         )}
 
-        {/* ── STEP 2: Bon de livraison ────────────────────────────────── */}
+        {/* ── STEP 2: Bon de livraison ───────────────────────────────── */}
         {step === 2 && (
           <View style={styles.stepContent}>
             <Text variant="h2" style={styles.stepTitle}>
@@ -839,7 +856,7 @@ export default function NouvelleReceptionScreen() {
           </View>
         )}
 
-        {/* ── STEP 3: Controle produits ───────────────────────────────── */}
+        {/* ── STEP 3: Controle produits ────────────────────────────── */}
         {step === 3 && (
           <View style={styles.stepContent}>
             <Text variant="h2" style={styles.stepTitle}>
@@ -878,7 +895,7 @@ export default function NouvelleReceptionScreen() {
           </View>
         )}
 
-        {/* ── STEP 4: Validation ──────────────────────────────────────── */}
+        {/* ── STEP 4: Validation ─────────────────────────────────── */}
         {step === 4 && !showRefusal && (
           <View style={styles.stepContent}>
             <Text variant="h2" style={styles.stepTitle}>
@@ -955,7 +972,7 @@ export default function NouvelleReceptionScreen() {
           </View>
         )}
 
-        {/* ── Refusal sub-view ────────────────────────────────────────── */}
+        {/* ── Refusal sub-view ──────────────────────────────────── */}
         {step === 4 && showRefusal && (
           <View style={styles.stepContent}>
             <Text variant="h2" style={styles.stepTitle}>
@@ -1031,7 +1048,7 @@ export default function NouvelleReceptionScreen() {
   );
 }
 
-// ── Styles ─────────────────────────────────────────────────────────────────
+// ── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   container: {
