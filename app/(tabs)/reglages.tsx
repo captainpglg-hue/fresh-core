@@ -12,8 +12,10 @@ import { useAuthStore } from '../../src/stores/authStore';
 import { isDemoMode } from '../../src/services/supabase';
 import { useSyncStore } from '../../src/stores/syncStore';
 import { syncManager } from '../../src/services/sync';
-import { updateLocal } from '../../src/services/database';
-import { ArrowLeft, User, Building2, Wifi, WifiOff, FileText, Info, LogOut, ChevronRight, Pencil, X } from 'lucide-react-native';
+import { updateLocal, getAllLocal } from '../../src/services/database';
+import { verifyChain } from '../../src/utils/hashChain';
+import type { Delivery, DeliveryItem } from '../../src/types/database';
+import { ArrowLeft, User, Building2, Wifi, WifiOff, FileText, Info, LogOut, ChevronRight, Pencil, X, ShieldCheck, ShieldAlert } from 'lucide-react-native';
 
 const NOTIF_PREF_KEYS = {
   temp: 'fc.notif.temp',
@@ -47,6 +49,14 @@ export default function ReglagesScreen() {
   const [notifDlc, setNotifDlc] = useState(true);
   const [notifCleaning, setNotifCleaning] = useState(true);
   const [notifPest, setNotifPest] = useState(true);
+
+  // Chain verification UI state — null = jamais lancé.
+  const [verifying, setVerifying] = useState(false);
+  const [verifResult, setVerifResult] = useState<
+    | null
+    | { ok: true; total: number }
+    | { ok: false; total: number; firstBreakAt: string | null; reason: string | null }
+  >(null);
 
   // Load persisted toggle states (SecureStore) on mount.
   useEffect(() => {
@@ -94,6 +104,87 @@ export default function ReglagesScreen() {
 
   const handleForceSync = async () => {
     await syncManager.startSync();
+  };
+
+  /**
+   * Bouton "Vérifier l'intégrité du journal" : recalcule SHA-256 sur la
+   * totalité des réceptions chaînées de l'établissement et compare au
+   * blockchain_hash persisté. C'est la matérialisation visible de la
+   * promesse "tamper-evident" du produit — sans ce bouton, le code
+   * existait mais l'utilisateur n'en voyait jamais le bénéfice.
+   */
+  const handleVerifyChain = async () => {
+    if (!establishment?.id) return;
+    setVerifying(true);
+    setVerifResult(null);
+    try {
+      const deliveries = await getAllLocal<Delivery>(
+        'deliveries',
+        'establishment_id = ?',
+        [establishment.id],
+      );
+      // On charge les items de toutes les livraisons pour pouvoir rejouer
+      // le payload (même structure que stocké lors de la création).
+      const allItems = await getAllLocal<DeliveryItem & { delivery_id: string }>(
+        'delivery_items',
+      );
+      const itemsByDeliveryId: Record<string, DeliveryItem[]> = {};
+      for (const it of allItems) {
+        const key = it.delivery_id;
+        if (!itemsByDeliveryId[key]) itemsByDeliveryId[key] = [];
+        itemsByDeliveryId[key].push(it);
+      }
+      const verifInput = deliveries.map((d) => ({
+        id: d.id,
+        supplier_id: d.supplier_id,
+        establishment_id: d.establishment_id,
+        delivery_date: d.delivery_date,
+        recorded_at: d.recorded_at,
+        status: d.status,
+        refusal_reason: d.refusal_reason,
+        blockchain_hash: d.blockchain_hash,
+      }));
+      const itemInput: Record<string, {
+        product_name: string | null;
+        category: string | null;
+        temperature: number | null;
+        dlc: string | null;
+        lot_number: string | null;
+        photo_paths: string[] | null;
+      }[]> = {};
+      for (const [did, items] of Object.entries(itemsByDeliveryId)) {
+        itemInput[did] = items.map((it) => ({
+          product_name: it.product_name,
+          category: it.category,
+          temperature: it.temperature,
+          dlc: it.dlc,
+          lot_number: it.lot_number,
+          photo_paths: it.photo_paths
+            ? (typeof it.photo_paths === 'string'
+                ? (JSON.parse(it.photo_paths) as string[])
+                : it.photo_paths)
+            : null,
+        }));
+      }
+      const result = await verifyChain(verifInput, itemInput);
+      if (result.ok) {
+        setVerifResult({ ok: true, total: result.totalChecked });
+      } else {
+        setVerifResult({
+          ok: false,
+          total: result.totalChecked,
+          firstBreakAt: result.firstBreakAt,
+          reason: result.breakReason,
+        });
+      }
+    } catch (e) {
+      Alert.alert(
+        'Vérification impossible',
+        e instanceof Error ? e.message : 'Erreur inconnue',
+      );
+    } finally {
+      setVerifying(false);
+    }
   };
 
   const openEditEstab = () => {
@@ -190,6 +281,47 @@ export default function ReglagesScreen() {
             onPress={handleForceSync}
             variant="ghost"
             loading={isSyncing}
+            size="sm"
+          />
+        </Card>
+
+        <Text variant="h3" style={styles.sectionTitle}>Intégrité du journal</Text>
+        <Card>
+          <View style={styles.row}>
+            {verifResult?.ok === false ? (
+              <ShieldAlert size={20} color={Colors.danger} />
+            ) : (
+              <ShieldCheck size={20} color={verifResult?.ok ? Colors.success : Colors.primary} />
+            )}
+            <View style={styles.rowInfo}>
+              <Text variant="body">Chaîne de hash des réceptions</Text>
+              {verifResult === null && (
+                <Text variant="caption" color={Colors.textSecondary}>
+                  Recalcule SHA-256 sur chaque réception et compare au hash stocké.
+                </Text>
+              )}
+              {verifResult?.ok === true && (
+                <Text variant="caption" color={Colors.success}>
+                  {verifResult.total} réception(s) vérifiée(s), chaîne intègre.
+                </Text>
+              )}
+              {verifResult?.ok === false && (
+                <>
+                  <Text variant="caption" color={Colors.danger}>
+                    Rupture détectée à la réception {verifResult.firstBreakAt ?? '?'}.
+                  </Text>
+                  {verifResult.reason && (
+                    <Text variant="caption" color={Colors.textSecondary}>{verifResult.reason}</Text>
+                  )}
+                </>
+              )}
+            </View>
+          </View>
+          <Button
+            title={verifying ? 'Vérification...' : 'Vérifier maintenant'}
+            onPress={handleVerifyChain}
+            variant="ghost"
+            loading={verifying}
             size="sm"
           />
         </Card>
