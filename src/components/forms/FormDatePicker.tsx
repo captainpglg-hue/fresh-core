@@ -104,7 +104,7 @@ export function FormDatePicker<T extends FieldValues>({
               >
                 {hasValue
                   ? formatDate(dateValue, mode)
-                  : 'Selectionner une date...'}
+                  : 'Sélectionner une date...'}
               </Text>
             </Pressable>
             {hasError && (

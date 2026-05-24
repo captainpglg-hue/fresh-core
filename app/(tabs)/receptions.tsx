@@ -15,8 +15,8 @@ import type { Delivery } from '../../src/types/database';
 
 const STATUS_MAP: Record<string, { label: string; variant: 'success' | 'danger' | 'warning' | 'info' }> = {
   pending: { label: 'En cours', variant: 'warning' },
-  accepted: { label: 'Acceptee', variant: 'success' },
-  refused: { label: 'Refusee', variant: 'danger' },
+  accepted: { label: 'Acceptée', variant: 'success' },
+  refused: { label: 'Refusée', variant: 'danger' },
   partial: { label: 'Partielle', variant: 'info' },
 };
 
@@ -30,7 +30,7 @@ export default function ReceptionsScreen() {
     if (establishment?.id) {
       loadDeliveries(establishment.id, selectedDate);
     }
-  }, [establishment?.id, selectedDate]);
+  }, [establishment?.id, selectedDate, loadDeliveries]);
 
   const renderDelivery = ({ item }: { item: Delivery }) => {
     const status = STATUS_MAP[item.status] || STATUS_MAP.pending;
@@ -41,7 +41,7 @@ export default function ReceptionsScreen() {
             <View style={styles.cardInfo}>
               <Truck size={20} color={Colors.primary} />
               <View>
-                <Text variant="h3">Reception</Text>
+                <Text variant="h3">Réception</Text>
                 <Text variant="caption" color={Colors.textSecondary}>
                   {format(new Date(item.recorded_at), 'HH:mm', { locale: fr })}
                 </Text>
@@ -59,7 +59,7 @@ export default function ReceptionsScreen() {
 
   return (
     <View style={styles.container}>
-      <Header title="Receptions" showSync />
+      <Header title="Réceptions" showSync />
       <Text variant="caption" color={Colors.textSecondary} style={styles.date}>
         {format(new Date(selectedDate), 'EEEE d MMMM yyyy', { locale: fr })}
       </Text>
@@ -71,7 +71,7 @@ export default function ReceptionsScreen() {
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text variant="body" color={Colors.textSecondary}>Aucune reception aujourd&apos;hui</Text>
+            <Text variant="body" color={Colors.textSecondary}>Aucune réception aujourd&apos;hui</Text>
           </View>
         }
       />

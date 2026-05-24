@@ -5,6 +5,7 @@ import { Text } from '../src/components/ui/Text';
 import { Button } from '../src/components/ui/Button';
 import { Colors } from '../src/constants/colors';
 import { Camera, WifiOff, Shield } from 'lucide-react-native';
+import { useAuthStore } from '../src/stores/authStore';
 
 const { width } = Dimensions.get('window');
 
@@ -13,33 +14,40 @@ const slides = [
     id: '1',
     icon: Camera,
     title: 'Fini les fiches papier',
-    subtitle: 'Chaque controle HACCP en 30 secondes grace a la photo guidee et la reconnaissance automatique.',
+    subtitle: 'Chaque contrôle HACCP en 30 secondes grâce à la photo guidée et la reconnaissance automatique.',
   },
   {
     id: '2',
     icon: WifiOff,
     title: '100% hors-ligne',
-    subtitle: 'Fonctionne sans internet, meme au marche. Vos donnees se synchronisent automatiquement au retour en ligne.',
+    subtitle: 'Fonctionne sans internet, même au marché. Vos données se synchronisent automatiquement au retour en ligne.',
   },
   {
     id: '3',
     icon: Shield,
     title: 'Rapports conformes DDPP',
-    subtitle: 'Vos releves sont horodates et exportables en PDF pret a presenter lors d\'un controle sanitaire.',
+    subtitle: 'Vos relevés sont horodatés et exportables en PDF prêt à présenter lors d\'un contrôle sanitaire.',
   },
 ];
 
 export default function OnboardingScreen() {
   const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
+
+  const finish = () => {
+    // If we're already authenticated (demo mode), skip the register step
+    // and go straight to the tabs the user came in through.
+    router.replace(isAuthenticated ? '/(tabs)' : '/(auth)/register');
+  };
 
   const handleNext = () => {
     if (currentIndex < slides.length - 1) {
       flatListRef.current?.scrollToIndex({ index: currentIndex + 1 });
       setCurrentIndex(currentIndex + 1);
     } else {
-      router.replace('/(auth)/register');
+      finish();
     }
   };
 
@@ -90,7 +98,7 @@ export default function OnboardingScreen() {
           size="lg"
         />
         {currentIndex < slides.length - 1 && (
-          <Pressable onPress={() => router.replace('/(auth)/register')}>
+          <Pressable onPress={finish}>
             <Text variant="caption" color={Colors.textSecondary} style={styles.skipText}>Passer</Text>
           </Pressable>
         )}

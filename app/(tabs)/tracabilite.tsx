@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Pressable, Modal } from 'react-native';
+import { Alert, View, StyleSheet, ScrollView, Pressable, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Text } from '../../src/components/ui/Text';
 import { Card } from '../../src/components/ui/Card';
@@ -30,7 +30,7 @@ export default function TracabiliteScreen() {
     if (establishment?.id) {
       loadProducts(establishment.id);
     }
-  }, [establishment?.id]);
+  }, [establishment?.id, loadProducts]);
 
   const { expiringSoon, expired } = getAlerts();
 
@@ -46,22 +46,40 @@ export default function TracabiliteScreen() {
 
   const handleAdd = async () => {
     if (!name || !establishment?.id) return;
-    await addProduct({
-      establishment_id: establishment.id,
-      product_name: name,
-      category: category || null,
-      dlc_primary: dlc || null,
-      lot_number: lot || null,
-    });
-    setShowAddModal(false);
-    setName(''); setCategory(''); setDlc(''); setLot('');
+    try {
+      await addProduct({
+        establishment_id: establishment.id,
+        product_name: name,
+        category: category || null,
+        dlc_primary: dlc || null,
+        lot_number: lot || null,
+      });
+      setShowAddModal(false);
+      setName(''); setCategory(''); setDlc(''); setLot('');
+    } catch (e) {
+      Alert.alert("Impossible d'ajouter le produit", e instanceof Error ? e.message : 'Erreur inconnue');
+    }
   };
 
   const handleDestroy = async () => {
     if (!selectedProductId) return;
-    await destroyProduct(selectedProductId, destroyReason);
-    setShowDestroyModal(false);
-    setDestroyReason('');
+    try {
+      await destroyProduct(selectedProductId, destroyReason);
+      setShowDestroyModal(false);
+      setDestroyReason('');
+      Alert.alert('Produit détruit', 'La destruction est tracée dans le journal HACCP.');
+    } catch (e) {
+      Alert.alert('Impossible de détruire', e instanceof Error ? e.message : 'Erreur inconnue');
+    }
+  };
+
+  const handleOpenProduct = async (productId: string) => {
+    try {
+      await openProduct(productId);
+      Alert.alert('Produit marqué entamé', 'La DLC secondaire (J+3) a été calculée automatiquement.');
+    } catch (e) {
+      Alert.alert("Impossible d'ouvrir", e instanceof Error ? e.message : 'Erreur inconnue');
+    }
   };
 
   const sortedProducts = [...productsInStock].sort((a, b) => {
@@ -76,7 +94,7 @@ export default function TracabiliteScreen() {
         <Pressable onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft size={24} color={Colors.textPrimary} />
         </Pressable>
-        <Text style={styles.headerTitle}>Tracabilite / DLC</Text>
+        <Text style={styles.headerTitle}>Traçabilité / DLC</Text>
         <View style={styles.placeholder} />
       </View>
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -84,7 +102,7 @@ export default function TracabiliteScreen() {
           <Card style={styles.alertCard}>
             <View style={styles.alertRow}>
               <AlertTriangle size={20} color={Colors.danger} />
-              <Text variant="h3" color={Colors.danger}>{expired.length} produit(s) expire(s)</Text>
+              <Text variant="h3" color={Colors.danger}>{expired.length} produit(s) expiré(s)</Text>
             </View>
           </Card>
         )}
@@ -106,18 +124,18 @@ export default function TracabiliteScreen() {
               <View style={styles.productInfo}>
                 <Text variant="h3">{product.product_name}</Text>
                 <Text variant="caption" color={Colors.textSecondary}>
-                  {product.category || 'Non categorise'} {product.lot_number ? `\u2014 Lot: ${product.lot_number}` : ''}
+                  {product.category || 'Non cat\u00e9goris\u00e9'} {product.lot_number ? `\u2014 Lot: ${product.lot_number}` : ''}
                 </Text>
                 <Text variant="caption" color={Colors.textSecondary}>
-                  DLC: {product.dlc_secondary || product.dlc_primary || 'Non renseignee'}
-                  {product.status === 'opened' ? ' (entame)' : ''}
+                  DLC: {product.dlc_secondary || product.dlc_primary || 'Non renseign\u00e9e'}
+                  {product.status === 'opened' ? ' (entam\u00e9)' : ''}
                 </Text>
               </View>
               <View style={styles.productActions}>
                 {getDlcBadge(product)}
                 <View style={styles.actionButtons}>
                   {product.status === 'in_stock' && (
-                    <Pressable style={styles.actionBtn} onPress={() => openProduct(product.id)}>
+                    <Pressable style={styles.actionBtn} onPress={() => handleOpenProduct(product.id)}>
                       <PackageOpen size={16} color={Colors.primary} />
                     </Pressable>
                   )}
@@ -140,7 +158,7 @@ export default function TracabiliteScreen() {
           <View style={styles.modalContent}>
             <Text variant="h2">Ajouter un produit</Text>
             <Input label="Nom du produit" value={name} onChangeText={setName} placeholder="Ex: Filet de poulet" />
-            <Input label="Categorie" value={category} onChangeText={setCategory} placeholder="Ex: viande, laitier..." />
+            <Input label="Catégorie" value={category} onChangeText={setCategory} placeholder="Ex: viande, laitier..." />
             <Input label="DLC (AAAA-MM-JJ)" value={dlc} onChangeText={setDlc} placeholder="Ex: 2026-04-10" />
             <Input label="N\u00B0 de lot" value={lot} onChangeText={setLot} placeholder="Optionnel" />
             <View style={styles.modalButtons}>
@@ -154,8 +172,8 @@ export default function TracabiliteScreen() {
       <Modal visible={showDestroyModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text variant="h2" color={Colors.danger}>Detruire le produit</Text>
-            <Input label="Motif de destruction" value={destroyReason} onChangeText={setDestroyReason} placeholder="Ex: DLC depassee" />
+            <Text variant="h2" color={Colors.danger}>Détruire le produit</Text>
+            <Input label="Motif de destruction" value={destroyReason} onChangeText={setDestroyReason} placeholder="Ex: DLC dépassée" />
             <View style={styles.modalButtons}>
               <Button title="Confirmer la destruction" onPress={handleDestroy} variant="danger" />
               <Button title="Annuler" onPress={() => setShowDestroyModal(false)} variant="ghost" />

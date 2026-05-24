@@ -31,7 +31,7 @@ export default function HuilesScreen() {
     if (establishment?.id) {
       loadData(establishment.id);
     }
-  }, [establishment?.id]);
+  }, [establishment?.id, loadData]);
 
   const handleTPMTest = (fryerId: string) => {
     setSelectedFryerId(fryerId);
@@ -110,9 +110,9 @@ export default function HuilesScreen() {
         {fryers.length === 0 ? (
           <View style={styles.empty}>
             <Droplet size={48} color={Colors.textSecondary} />
-            <Text variant="body" color={Colors.textSecondary}>Aucune friteuse configuree</Text>
+            <Text variant="body" color={Colors.textSecondary}>Aucune friteuse configur\u00e9e</Text>
             <Text variant="caption" color={Colors.textSecondary}>
-              Ajoutez une friteuse depuis Reglages \u2192 Equipements
+              Ajoutez une friteuse depuis R\u00e9glages \u2192 \u00c9quipements
             </Text>
           </View>
         ) : (
@@ -149,7 +149,7 @@ export default function HuilesScreen() {
 
                 {lastFilter && (
                   <View style={styles.infoRow}>
-                    <Text variant="body">Derniere filtration</Text>
+                    <Text variant="body">Dernière filtration</Text>
                     <Text variant="caption" color={Colors.textSecondary}>
                       {format(new Date(lastFilter.recorded_at), 'dd/MM/yyyy', { locale: fr })}
                     </Text>
@@ -157,10 +157,10 @@ export default function HuilesScreen() {
                 )}
 
                 <View style={styles.actions}>
-                  <Button title="Test qualite" onPress={() => handleTPMTest(fryer.id)} size="sm" icon={<FlaskConical size={14} color={Colors.white} />} />
-                  <Button title="Huile changee" onPress={() => handleQuickAction(fryer.id, 'oil_change')} size="sm" variant="secondary" icon={<RefreshCw size={14} color={Colors.white} />} />
+                  <Button title="Test qualité" onPress={() => handleTPMTest(fryer.id)} size="sm" icon={<FlaskConical size={14} color={Colors.white} />} />
+                  <Button title="Huile changée" onPress={() => handleQuickAction(fryer.id, 'oil_change')} size="sm" variant="secondary" icon={<RefreshCw size={14} color={Colors.white} />} />
                   <Button title="Filtration" onPress={() => handleQuickAction(fryer.id, 'filtration')} size="sm" variant="ghost" icon={<Filter size={14} color={Colors.primary} />} />
-                  <Button title="Bon enlevement" onPress={() => { setSelectedFryerId(fryer.id); setCameraMode('waste'); setScreenState('camera'); }} size="sm" variant="ghost" icon={<FileText size={14} color={Colors.primary} />} />
+                  <Button title="Bon enlèvement" onPress={() => { setSelectedFryerId(fryer.id); setCameraMode('waste'); setScreenState('camera'); }} size="sm" variant="ghost" icon={<FileText size={14} color={Colors.primary} />} />
                 </View>
               </Card>
             );

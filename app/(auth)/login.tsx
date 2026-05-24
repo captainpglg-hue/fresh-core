@@ -12,7 +12,7 @@ import { useAuthStore } from '../../src/stores/authStore';
 
 const loginSchema = z.object({
   email: z.string().email('Email invalide'),
-  password: z.string().min(6, 'Minimum 6 caracteres'),
+  password: z.string().min(6, 'Minimum 6 caractères'),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -52,7 +52,7 @@ export default function LoginScreen() {
         <View style={styles.logoContainer}>
           <View style={styles.logoBadge}>
             <Text style={styles.logoText}>FRESH{'\u00B7'}CORE</Text>
-            <Text style={styles.logoSubtext}>Conformite HACCP simplifiee</Text>
+            <Text style={styles.logoSubtext}>Conformité HACCP simplifiée</Text>
           </View>
         </View>
 
@@ -90,7 +90,7 @@ export default function LoginScreen() {
           >
             <Text style={styles.linkText}>
               Pas encore de compte ?{' '}
-              <Text style={styles.linkTextBold}>Creer un compte</Text>
+              <Text style={styles.linkTextBold}>Créer un compte</Text>
             </Text>
           </Pressable>
         </View>

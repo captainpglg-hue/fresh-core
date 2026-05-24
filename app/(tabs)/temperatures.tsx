@@ -36,10 +36,10 @@ type EquipmentType = Equipment['type'];
 
 const EQUIPMENT_TYPES: { value: EquipmentType; label: string }[] = [
   { value: 'cold_positive', label: 'Chambre froide positive' },
-  { value: 'cold_negative', label: 'Chambre froide negative' },
-  { value: 'cold_positive_veg', label: 'Frigo legumes' },
+  { value: 'cold_negative', label: 'Chambre froide négative' },
+  { value: 'cold_positive_veg', label: 'Frigo légumes' },
   { value: 'cold_room', label: 'Chambre froide' },
-  { value: 'display_case', label: 'Vitrine refrigeree' },
+  { value: 'display_case', label: 'Vitrine réfrigérée' },
   { value: 'hot_holding', label: 'Maintien chaud' },
   { value: 'cooking', label: 'Cuisson' },
   { value: 'fryer', label: 'Friteuse' },
@@ -227,7 +227,7 @@ export default function TemperaturesScreen() {
                     />
                   </>
                 ) : (
-                  <Badge text="A relever" variant="warning" />
+                  <Badge text="À relever" variant="warning" />
                 )}
               </View>
             </View>
@@ -244,21 +244,21 @@ export default function TemperaturesScreen() {
 
   return (
     <View style={styles.container}>
-      <Header title="Temperatures du jour" subtitle={displayDate} />
+      <Header title="Températures du jour" subtitle={displayDate} />
 
       {/* Stats Card */}
       <Card style={styles.statsCard}>
         <View style={styles.statsRow}>
           <View style={styles.statsTextCol}>
             <Text variant="h2" color={Colors.primary}>
-              {completedCount}/{totalCount} releves effectues
+              {completedCount}/{totalCount} relevés effectués
             </Text>
             <Text variant="caption" color={Colors.textSecondary}>
               {totalCount > 0
                 ? completedCount === totalCount
-                  ? 'Tous les releves sont a jour'
-                  : `${totalCount - completedCount} equipement(s) en attente`
-                : 'Ajoutez votre premier equipement'}
+                  ? 'Tous les relevés sont à jour'
+                  : `${totalCount - completedCount} équipement(s) en attente`
+                : 'Ajoutez votre premier équipement'}
             </Text>
           </View>
           <ProgressCircle
@@ -288,18 +288,18 @@ export default function TemperaturesScreen() {
               color={Colors.textSecondary}
               style={styles.emptyText}
             >
-              Ajoutez votre premier equipement
+              Ajoutez votre premier équipement
             </Text>
             <Text
               variant="caption"
               color={Colors.textSecondary}
               style={styles.emptySubtext}
             >
-              Appuyez sur + pour commencer a enregistrer vos temperatures
+              Appuyez sur + pour commencer à enregistrer vos températures
             </Text>
             <View style={styles.emptyButtonSpacer} />
             <Button
-              title="Ajouter un equipement"
+              title="Ajouter un équipement"
               onPress={() => setShowAddModal(true)}
               variant="primary"
               size="md"
@@ -326,7 +326,7 @@ export default function TemperaturesScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text variant="h2">Ajouter un equipement</Text>
+              <Text variant="h2">Ajouter un équipement</Text>
               <IconButton
                 icon={<X size={24} color={Colors.textSecondary} />}
                 onPress={() => setShowAddModal(false)}
@@ -335,7 +335,7 @@ export default function TemperaturesScreen() {
 
             <ScrollView style={styles.modalBody}>
               <Input
-                label="Nom de l'equipement"
+                label="Nom de l'équipement"
                 value={newName}
                 onChangeText={setNewName}
                 placeholder="Ex: Frigo cuisine"
@@ -343,7 +343,7 @@ export default function TemperaturesScreen() {
               />
 
               <Text variant="h3" style={styles.fieldLabel}>
-                Type d&apos;equipement
+                Type d&apos;équipement
               </Text>
               <View style={styles.typeGrid}>
                 {EQUIPMENT_TYPES.map((eqType, index) => (
@@ -373,7 +373,7 @@ export default function TemperaturesScreen() {
               <View style={styles.thresholdInfo}>
                 <Text variant="caption" color={Colors.textSecondary}>
                   Seuil :{' '}
-                  {selectedThresholdDisplay || 'Non defini pour ce type'}
+                  {selectedThresholdDisplay || 'Non défini pour ce type'}
                 </Text>
               </View>
 
@@ -393,7 +393,7 @@ export default function TemperaturesScreen() {
                 onPress={() => setShowAddModal(false)}
               />
               <Button
-                title="Ajouter cet equipement"
+                title="Ajouter cet équipement"
                 variant="primary"
                 onPress={handleAddEquipment}
                 loading={saving}

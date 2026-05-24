@@ -27,15 +27,15 @@ import { useAuthStore } from '../../src/stores/authStore';
 
 const CORRECTIVE_OPTIONS = [
   {
-    label: 'Transfert des produits vers un equipement conforme',
+    label: 'Transfert des produits vers un équipement conforme',
     value: 'transfert_produits',
   },
   {
-    label: 'Reglage du thermostat',
+    label: 'Réglage du thermostat',
     value: 'reglage_thermostat',
   },
   {
-    label: 'Alerte maintenance — equipement defaillant',
+    label: 'Alerte maintenance — équipement défaillant',
     value: 'alerte_maintenance',
   },
   {
@@ -43,11 +43,11 @@ const CORRECTIVE_OPTIONS = [
     value: 'refroidissement_rapide',
   },
   {
-    label: 'Destruction des produits a risque',
+    label: 'Destruction des produits à risque',
     value: 'destruction_produits',
   },
   {
-    label: 'Autre action (preciser)',
+    label: 'Autre action (préciser)',
     value: 'autre',
   },
 ];
@@ -71,7 +71,7 @@ export default function CorrectifScreen() {
 
   const temperature = parseFloat(params.temperature || '0');
   const equipmentId = params.equipmentId ?? '';
-  const equipmentName = params.equipmentName ?? 'Equipement';
+  const equipmentName = params.equipmentName ?? 'Équipement';
   const thresholdValue = params.threshold ?? '';
   const thresholdType = params.thresholdType ?? '';
 
@@ -83,7 +83,7 @@ export default function CorrectifScreen() {
         ? `Min ${thresholdConfig.min}°C`
         : thresholdValue
           ? `${thresholdValue}°C`
-          : 'Non defini';
+          : 'Non défini';
 
   const { addReading } = useTemperatureStore();
   const { establishment, user } = useAuthStore();
@@ -140,14 +140,17 @@ export default function CorrectifScreen() {
         });
 
         Alert.alert(
-          'Action enregistree',
-          'L\'action corrective a ete sauvegardee avec succes.',
+          'Action enregistrée',
+          'L\'action corrective a été sauvegardée avec succès.',
           [
             {
               text: 'OK',
               onPress: () => {
-                // Navigate back to temperatures list
-                router.dismiss(2);
+                // Always land back on the temperatures tab regardless of how
+                // deep the corrective flow was pushed (avoids the fragile
+                // hardcoded dismiss(2) which broke when entered from the
+                // equipment detail modal directly).
+                router.replace('/(tabs)/temperatures');
               },
             },
           ],
@@ -155,7 +158,7 @@ export default function CorrectifScreen() {
       } catch {
         Alert.alert(
           'Erreur',
-          'Impossible de sauvegarder l\'action corrective. Veuillez reessayer.',
+          'Impossible de sauvegarder l\'action corrective. Veuillez réessayer.',
         );
       } finally {
         setIsSaving(false);
@@ -222,7 +225,7 @@ export default function CorrectifScreen() {
           <View style={styles.alertMetrics}>
             <View style={styles.metricBox}>
               <Text variant="caption" color={Colors.textSecondary}>
-                Temperature relevee
+                Température relevée
               </Text>
               <Text variant="h1" color={Colors.danger}>
                 {temperature.toFixed(1)}°C
@@ -231,7 +234,7 @@ export default function CorrectifScreen() {
             <View style={styles.metricDivider} />
             <View style={styles.metricBox}>
               <Text variant="caption" color={Colors.textSecondary}>
-                Seuil reglementaire
+                Seuil réglementaire
               </Text>
               <Text variant="h2" color={Colors.textPrimary}>
                 {thresholdDisplay}
@@ -246,7 +249,7 @@ export default function CorrectifScreen() {
             control={control}
             name="action"
             label="Action entreprise"
-            placeholder="Selectionnez une action..."
+            placeholder="Sélectionnez une action..."
             options={CORRECTIVE_OPTIONS}
             rules={{ required: 'Veuillez choisir une action' }}
           />
@@ -255,16 +258,16 @@ export default function CorrectifScreen() {
           <FormField
             control={control}
             name="details"
-            label="Details complementaires"
+            label="Détails complémentaires"
             placeholder={
               selectedAction === 'autre'
-                ? 'Preciser l\'action entreprise...'
-                : 'Informations supplementaires (optionnel)'
+                ? 'Préciser l\'action entreprise...'
+                : 'Informations supplémentaires (optionnel)'
             }
             multiline
             rules={
               selectedAction === 'autre'
-                ? { required: 'Veuillez preciser l\'action' }
+                ? { required: 'Veuillez préciser l\'action' }
                 : undefined
             }
           />

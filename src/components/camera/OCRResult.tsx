@@ -54,7 +54,7 @@ export function OCRResult({
         <Image source={{ uri: photoUri }} style={styles.thumbnail} />
         <View style={styles.equipmentInfo}>
           <Text variant="caption" color={Colors.textSecondary} style={styles.equipmentLabel}>
-            EQUIPEMENT
+            ÉQUIPEMENT
           </Text>
           <Text variant="h3">{equipmentName}</Text>
         </View>
@@ -83,7 +83,7 @@ export function OCRResult({
           {/* Confidence info */}
           <View style={styles.confidenceRow}>
             <Text variant="caption" color={Colors.textSecondary}>
-              Fiabilite OCR : {Math.round(confidence * 100)}%
+              Fiabilité OCR : {Math.round(confidence * 100)}%
             </Text>
             <View
               style={[
@@ -97,10 +97,10 @@ export function OCRResult({
           {lowConfidence && (
             <View style={styles.correctionSection}>
               <Text variant="body" color={Colors.warning} style={styles.correctionWarning}>
-                Confiance faible, verifiez la valeur
+                Confiance faible, vérifiez la valeur
               </Text>
               <Input
-                label="Temperature corrigee"
+                label="Température corrigée"
                 value={manualValue}
                 onChangeText={setManualValue}
                 keyboardType="numeric"
@@ -112,7 +112,7 @@ export function OCRResult({
           {/* Actions */}
           <View style={styles.actions}>
             <Button
-              title="Valider ce releve"
+              title="Valider ce relevé"
               onPress={handleValidate}
               variant="primary"
               size="lg"
@@ -131,18 +131,18 @@ export function OCRResult({
         <View style={styles.resultSection}>
           {/* No temperature detected */}
           <Text variant="h3" style={styles.noResultTitle}>
-            Impossible de lire la temperature automatiquement
+            Impossible de lire la température automatiquement
           </Text>
           <Text variant="body" color={Colors.textSecondary} style={styles.noResultSubtitle}>
             Saisissez la valeur manuellement.
           </Text>
 
           <Input
-            label="Temperature"
+            label="Température"
             value={manualValue}
             onChangeText={setManualValue}
             keyboardType="numeric"
-            placeholder="Saisissez la temperature"
+            placeholder="Saisissez la température"
           />
           <Text variant="caption" color={Colors.textSecondary} style={styles.unitHint}>
             °C

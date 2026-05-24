@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { getAllLocal, insertLocal } from '../services/database';
-import { differenceInDays } from 'date-fns';
 import type { PestControl } from '../types/database';
 
 interface PestCheckpoint {

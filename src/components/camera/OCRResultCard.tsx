@@ -54,7 +54,7 @@ export function OCRResultCard({
 
       <View style={styles.confidenceRow}>
         <Text variant="caption" color={Colors.textSecondary}>
-          Fiabilite OCR : {Math.round(confidence * 100)}%
+          Fiabilité OCR : {Math.round(confidence * 100)}%
         </Text>
         <View
           style={[
@@ -67,10 +67,10 @@ export function OCRResultCard({
       {lowConfidence && (
         <View style={styles.correctionSection}>
           <Text variant="body" color={Colors.warning} style={styles.correctionWarning}>
-            Fiabilite faible — verifiez et corrigez si necessaire
+            Fiabilité faible — vérifiez et corrigez si nécessaire
           </Text>
           <Input
-            label="Temperature corrigee (°C)"
+            label="Température corrigée (°C)"
             value={correctedValue}
             onChangeText={setCorrectedValue}
             keyboardType="numeric"
