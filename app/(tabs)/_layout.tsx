@@ -34,7 +34,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="temperatures"
         options={{
-          title: 'Temperatures',
+          title: 'Températures',
           tabBarIcon: ({ color, size }) => (
             <Thermometer size={size} color={color} />
           ),
@@ -43,7 +43,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="receptions"
         options={{
-          title: 'Receptions',
+          title: 'Réceptions',
           tabBarIcon: ({ color, size }) => <Truck size={size} color={color} />,
         }}
       />

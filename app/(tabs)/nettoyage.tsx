@@ -30,7 +30,7 @@ export default function NettoyageScreen() {
     if (establishment?.id) {
       initDefaultTasks(establishment.id);
     }
-  }, [establishment?.id]);
+  }, [establishment?.id, initDefaultTasks]);
 
   const completedTaskIds = new Set(todayRecords.map((r) => r.task_id));
   const completedCount = completedTaskIds.size;
@@ -57,7 +57,7 @@ export default function NettoyageScreen() {
       <Header title="Nettoyage" showSync />
 
       <View style={styles.progress}>
-        <Text variant="h3">{completedCount}/{tasks.length} taches completees</Text>
+        <Text variant="h3">{completedCount}/{tasks.length} tâches complétées</Text>
         <View style={styles.progressBar}>
           <View style={[styles.progressFill, { width: `${tasks.length > 0 ? (completedCount / tasks.length) * 100 : 0}%` }]} />
         </View>
@@ -85,7 +85,7 @@ export default function NettoyageScreen() {
         )}
 
         <View style={styles.section}>
-          <Text variant="h3">Toutes les taches</Text>
+          <Text variant="h3">Toutes les tâches</Text>
           {tasks.map((task) => {
             const isDone = completedTaskIds.has(task.id);
             return (
@@ -115,7 +115,7 @@ export default function NettoyageScreen() {
           <View style={styles.modalContent}>
             <Text variant="h2">Valider le nettoyage</Text>
             <Input label="Produit d'entretien" value={product} onChangeText={setProduct} placeholder="Ex: Javel 2.6%" />
-            <Input label="Dosage utilise" value={dosage} onChangeText={setDosage} placeholder="Ex: 50ml/5L eau" />
+            <Input label="Dosage utilisé" value={dosage} onChangeText={setDosage} placeholder="Ex: 50ml/5L eau" />
             <View style={styles.modalButtons}>
               <Button title="Valider" onPress={handleValidate} />
               <Button title="Annuler" onPress={() => setShowModal(false)} variant="ghost" />

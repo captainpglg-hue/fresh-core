@@ -76,12 +76,12 @@ export async function generateDDPPReport(
       <p><strong>${establishment.name}</strong></p>
       <p>${establishment.address || ''} ${establishment.city || ''} ${establishment.postal_code || ''}</p>
       ${establishment.siret ? `<p>SIRET: ${establishment.siret}</p>` : ''}
-      <p>Periode: du ${format(new Date(periodStart), 'dd/MM/yyyy', { locale: fr })} au ${format(new Date(periodEnd), 'dd/MM/yyyy', { locale: fr })}</p>
+      <p>Période : du ${format(new Date(periodStart), 'dd/MM/yyyy', { locale: fr })} au ${format(new Date(periodEnd), 'dd/MM/yyyy', { locale: fr })}</p>
 
-      <h2>1. Temperatures</h2>
-      <p>${totalTemp} releves — ${compliantTemp} conformes (${totalTemp > 0 ? Math.round((compliantTemp / totalTemp) * 100) : 0}%)</p>
+      <h2>1. Températures</h2>
+      <p>${totalTemp} relevés — ${compliantTemp} conformes (${totalTemp > 0 ? Math.round((compliantTemp / totalTemp) * 100) : 0}%)</p>
       <table>
-        <tr><th>Date</th><th>Equipement</th><th>Valeur</th><th>Conformite</th></tr>
+        <tr><th>Date</th><th>Équipement</th><th>Valeur</th><th>Conformité</th></tr>
         ${temperatures.slice(0, 50).map((t) => `
           <tr>
             <td>${format(new Date(t.recorded_at), 'dd/MM/yyyy HH:mm')}</td>
@@ -92,32 +92,33 @@ export async function generateDDPPReport(
         `).join('')}
       </table>
 
-      <h2>2. Receptions</h2>
-      <p>${deliveries.length} reception(s) sur la periode</p>
+      <h2>2. Réceptions</h2>
+      <p>${deliveries.length} réception(s) sur la période — chaque ligne porte son empreinte SHA-256 chaînée à la précédente (chaîne d'audit inviolable).</p>
       <table>
-        <tr><th>Date</th><th>Statut</th></tr>
+        <tr><th>Date</th><th>Statut</th><th>Empreinte (chaîne d'audit)</th></tr>
         ${deliveries.map((d) => `
           <tr>
             <td>${d.delivery_date}</td>
             <td>${d.status}</td>
+            <td style="font-family: monospace; font-size: 10px;">${d.blockchain_hash ? d.blockchain_hash.slice(0, 16) + '…' + d.blockchain_hash.slice(-16) : '—'}</td>
           </tr>
         `).join('')}
       </table>
 
       <h2>3. Nettoyage</h2>
-      <p>${cleaningRecords.length} operations de nettoyage enregistrees</p>
+      <p>${cleaningRecords.length} opérations de nettoyage enregistrées</p>
 
       <h2>4. Cuisson</h2>
-      <p>${temperatures.filter((t) => t.reading_type === 'cooking_core').length} controles de cuisson</p>
+      <p>${temperatures.filter((t) => t.reading_type === 'cooking_core').length} contrôles de cuisson</p>
 
-      <h2>5. Tracabilite DLC</h2>
-      <p>${products.length} produit(s) detruit(s) sur la periode</p>
+      <h2>5. Traçabilité DLC</h2>
+      <p>${products.length} produit(s) détruit(s) sur la période</p>
 
       <h2>6. Huiles</h2>
-      <p>${oilControls.length} controle(s) d'huile</p>
+      <p>${oilControls.length} contrôle(s) d'huile</p>
       ${oilControls.filter((o) => o.control_type === 'tpm_test').length > 0 ? `
         <table>
-          <tr><th>Date</th><th>TPM (%)</th><th>Conformite</th></tr>
+          <tr><th>Date</th><th>TPM (%)</th><th>Conformité</th></tr>
           ${oilControls.filter((o) => o.control_type === 'tpm_test').map((o) => `
             <tr>
               <td>${format(new Date(o.recorded_at), 'dd/MM/yyyy')}</td>
@@ -129,11 +130,11 @@ export async function generateDDPPReport(
       ` : ''}
 
       <h2>7. Nuisibles</h2>
-      <p>${pestControls.length} controle(s) — ${pestControls.filter((p) => p.is_anomaly).length} anomalie(s)</p>
+      <p>${pestControls.length} contrôle(s) — ${pestControls.filter((p) => p.is_anomaly).length} anomalie(s)</p>
 
       <div class="footer">
-        <p>Document genere par Fresh-Core — ${format(new Date(), 'dd/MM/yyyy HH:mm', { locale: fr })}</p>
-        <p>Ce rapport est genere automatiquement a partir des enregistrements HACCP numeriques.</p>
+        <p>Document généré par Fresh-Core — ${format(new Date(), 'dd/MM/yyyy HH:mm', { locale: fr })}</p>
+        <p>Ce rapport est généré automatiquement à partir des enregistrements HACCP numériques.</p>
       </div>
     </body>
     </html>

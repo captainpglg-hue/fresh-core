@@ -29,6 +29,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0D1B2A;
 .ob-back{color:#64748B;font-size:13px;cursor:pointer;margin-bottom:16px;width:100%;max-width:500px;}
 .ob-input{width:100%;max-width:500px;padding:14px 16px;background:#1a2d3d;border:2px solid #1E3A4A;border-radius:12px;color:#fff;font-size:15px;margin-bottom:12px;outline:none;}
 .ob-skip{color:#64748B;font-size:13px;cursor:pointer;margin-top:12px;text-decoration:underline;}
+.ob-err{width:100%;max-width:500px;background:#3B0D0D;color:#F87171;border-radius:10px;padding:10px 14px;font-size:13px;text-align:center;margin-bottom:10px;display:none;}
 #app{display:none;flex-direction:column;min-height:100vh;background:#0D1B2A;}
 .app-header{background:#0F1F2E;padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1E3A4A;position:sticky;top:0;z-index:100;}
 .app-logo{font-size:18px;font-weight:800;color:var(--teal);}
@@ -92,6 +93,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0D1B2A;
     <div class="ob-title">Quelle est votre filière ?</div>
     <div class="ob-hint">L'app s'adaptera à votre activité</div>
     <div class="ob-grid" id="filiere-grid"></div>
+    <div class="ob-err" id="ob-err1"></div>
     <button class="ob-btn" id="ob-btn1" onclick="obNext(1)">Continuer →</button>
   </div>
   <div id="ob-step2" style="display:none;width:100%;max-width:500px">
@@ -99,6 +101,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0D1B2A;
     <div class="ob-title">Votre rôle dans la filière ?</div>
     <div class="ob-hint" id="ob-filiere-label"></div>
     <div class="ob-grid" id="maillon-grid"></div>
+    <div class="ob-err" id="ob-err2"></div>
     <button class="ob-btn" id="ob-btn2" onclick="obNext(2)">Continuer →</button>
   </div>
   <div id="ob-step3" style="display:none;width:100%;max-width:500px">
@@ -191,8 +194,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0D1B2A;
   </div>
 </div>
 <script>
-const SUPABASE_URL='https://kmmlwuwsahtzgzztcdaj.supabase.co';
-const SUPABASE_KEY='sb_publishable_2vpOpFX40IzXgEp_nOCfKg_x_nIqRUs';
+const SUPABASE_URL='https://hqsyygywfhtsbtgdtzds.supabase.co';
+const SUPABASE_KEY='sb_publishable_dv4pBDtXdSNdwRpDT_nFoA_c4RfR8aH';
 let db=null;try{db=window.supabase?.createClient(SUPABASE_URL,SUPABASE_KEY);}catch(e){}
 const DEVICE_ID=(()=>{let id=localStorage.getItem('fc_device_id');if(!id){id='fc_'+Date.now()+'_'+Math.random().toString(36).substr(2,6);localStorage.setItem('fc_device_id',id);}return id;})();
 function getData(k,d=[]){try{return JSON.parse(localStorage.getItem('fc_'+k)||JSON.stringify(d));}catch(e){return d;}}
@@ -203,10 +206,11 @@ const MAILLONS={peche:[{id:'pecheur',icon:'⚓',label:'Pêcheur',sub:'Patron de 
 let obSel={filiere:null,maillon:null};
 function renderGrid(cid,items,type){document.getElementById(cid).innerHTML=items.map(i=>`<div class="ob-card" id="${type}-${i.id}" onclick="obSel_('${type}','${i.id}','${i.label}')"><div class="ob-card-icon">${i.icon}</div><div class="ob-card-title">${i.label}</div><div class="ob-card-sub">${i.sub}</div></div>`).join('');}
 function obSel_(type,id,label){obSel[type]=id;document.querySelectorAll(`[id^="${type}-"]`).forEach(e=>e.classList.remove('selected'));document.getElementById(`${type}-${id}`)?.classList.add('selected');if(type==='filiere'){document.getElementById('ob-btn1').classList.add('ready');document.getElementById('ob-filiere-label').textContent=label;renderGrid('maillon-grid',MAILLONS[id]||MAILLONS.default,'maillon');}else document.getElementById('ob-btn2').classList.add('ready');}
-function obNext(s){if(s===1&&!obSel.filiere)return;if(s===2&&!obSel.maillon)return;document.getElementById(`ob-step${s}`).style.display='none';document.getElementById(`ob-step${s+1}`).style.display='block';document.getElementById(`dot${s-1}`).className='ob-dot done';document.getElementById(`dot${s}`).className='ob-dot active';}
+function obErr(s,msg){const e=document.getElementById(`ob-err${s}`);if(!e)return;e.textContent=msg;e.style.display='block';clearTimeout(e._t);e._t=setTimeout(()=>e.style.display='none',3000);}
+function obNext(s){if(s===1&&!obSel.filiere){obErr(1,'⚠️ Sélectionnez une filière avant de continuer');return;}if(s===2&&!obSel.maillon){obErr(2,'⚠️ Sélectionnez votre rôle avant de continuer');return;}document.getElementById(`ob-step${s}`).style.display='none';document.getElementById(`ob-step${s+1}`).style.display='block';document.getElementById(`dot${s-1}`).className='ob-dot done';document.getElementById(`dot${s}`).className='ob-dot active';}
 function obBack(s){document.getElementById(`ob-step${s+1}`).style.display='none';document.getElementById(`ob-step${s}`).style.display='block';document.getElementById(`dot${s}`).className='ob-dot';document.getElementById(`dot${s-1}`).className='ob-dot active';}
-async function obFinish(){const p={filiere:obSel.filiere,maillon:obSel.maillon,nom:document.getElementById('ob-nom').value,etablissement:document.getElementById('ob-etablissement').value,created_at:new Date().toISOString()};setData('profil',p);await saveDB('profils',p);lancerApp(p);}
-function lancerApp(p){document.getElementById('onboarding').style.display='none';document.getElementById('app').style.display='flex';document.getElementById('app-role-label').textContent=(p.nom?p.nom+' · ':'')+p.maillon.toUpperCase();document.getElementById('settings-profil').textContent=p.filiere+' · '+p.maillon+(p.etablissement?' · '+p.etablissement:'');initNettoyage();updateStats();renderLots();renderTemps();renderDLC();document.getElementById('dlc-date').valueAsDate=new Date();}
+function obFinish(){const p={filiere:obSel.filiere,maillon:obSel.maillon,nom:document.getElementById('ob-nom').value,etablissement:document.getElementById('ob-etablissement').value,created_at:new Date().toISOString()};try{setData('profil',p);}catch(e){}saveDB('profils',p).catch(()=>{});lancerApp(p);}
+function lancerApp(p){try{document.getElementById('onboarding').style.display='none';document.getElementById('app').style.display='flex';const maillonLabel=(p.maillon||'utilisateur').toUpperCase();document.getElementById('app-role-label').textContent=(p.nom?p.nom+' · ':'')+maillonLabel;document.getElementById('settings-profil').textContent=(p.filiere||'—')+' · '+(p.maillon||'—')+(p.etablissement?' · '+p.etablissement:'');initNettoyage();updateStats();renderLots();renderTemps();renderDLC();document.getElementById('dlc-date').valueAsDate=new Date();}catch(e){alert('Erreur au lancement: '+e.message);}}
 function switchTab(t){['accueil','lot','temp','nettoyage','dlc'].forEach(x=>{document.getElementById('tab-'+x).style.display=x===t?'block':'none';document.getElementById('nav-'+x)?.classList.toggle('active',x===t);});if(t==='accueil'){updateStats();renderLots();}if(t==='lot')renderLots();if(t==='temp')renderTemps();if(t==='dlc')renderDLC();if(t==='nettoyage')renderNettoyage();}
 function showBanner(msg,err=false){const b=document.getElementById('success-banner');b.textContent=msg;b.style.display='block';b.style.background=err?'#3B0D0D':'#0F3D30';b.style.color=err?'#F87171':'var(--teal)';setTimeout(()=>b.style.display='none',3000);}
 function genLotId(){const d=new Date();const date=d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);const n=getData('lots',[]).filter(l=>l.lot_id?.includes(date)).length;return `PEB-${date}-${String(n+1).padStart(3,'0')}`;}

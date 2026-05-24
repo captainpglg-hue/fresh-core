@@ -8,6 +8,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Text } from '../ui/Text';
 import { Button } from '../ui/Button';
 import { Colors } from '../../constants/colors';
+import { processPhoto } from '../../services/photo';
 
 interface Props {
   onCapture: (uri: string) => void;
@@ -26,9 +27,13 @@ export function CameraOverlay({ onCapture, onClose }: Props) {
 
     try {
       const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.8,
+        quality: 0.9,
       });
-      if (photo?.uri) {
+      if (!photo?.uri) return;
+      try {
+        const processed = await processPhoto(photo.uri);
+        onCapture(processed.uri);
+      } catch {
         onCapture(photo.uri);
       }
     } catch {
@@ -42,7 +47,7 @@ export function CameraOverlay({ onCapture, onClose }: Props) {
     return (
       <View style={styles.permissionContainer}>
         <Text variant="body" color={Colors.white}>
-          Chargement de la camera...
+          Chargement de la caméra...
         </Text>
       </View>
     );
@@ -52,13 +57,13 @@ export function CameraOverlay({ onCapture, onClose }: Props) {
     return (
       <View style={styles.permissionContainer}>
         <Text variant="h2" color={Colors.white} style={styles.permissionTitle}>
-          Acces camera requis
+          Accès caméra requis
         </Text>
         <Text variant="body" color={Colors.white} style={styles.permissionText}>
-          Fresh-Core a besoin d'acceder a votre camera pour photographier les thermometres.
+          Fresh-Core a besoin d'accéder à votre caméra pour photographier les thermomètres.
         </Text>
         <Button
-          title="Autoriser la camera"
+          title="Autoriser la caméra"
           onPress={requestPermission}
           variant="primary"
           size="lg"
@@ -114,7 +119,7 @@ export function CameraOverlay({ onCapture, onClose }: Props) {
             <View style={[styles.corner, styles.cornerBottomRight]} />
           </View>
           <Text variant="body" color={Colors.white} style={styles.guideText}>
-            Centrez le thermometre dans le cadre
+            Centrez le thermomètre dans le cadre
           </Text>
         </View>
 

@@ -114,7 +114,7 @@ Tab bar visible : Accueil, Températures, Réceptions, Nettoyage, **Plus** (sous
 
 **Do**
 - Lance `npm test` avant tout commit.
-- Lance `npx tsc --noEmit` pour typecheck avant commit.
+- Lance `npm run typecheck` avant commit (wrapper sur `tsc --noEmit` avec un stack node plus large — `npx tsc --noEmit` direct plante en RangeError sur ce projet, deep recursion zod/react).
 - Quand tu ajoutes une colonne en base, modifie **à la fois** `supabase/migrations/` **et** `src/services/database.ts` (schéma SQLite).
 - Tout nouveau composant UI dans `src/components/ui/` avec des props typées.
 - Garde les stores zustand fins : logique métier dans le store, pas dans le composant.

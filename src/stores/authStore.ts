@@ -117,6 +117,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signOut: async () => {
+    if (isDemoMode) {
+      // No real session to invalidate. Drop local state and let
+      // initialize() seed Marie Dupont right back on the next render so
+      // the demo never lands on the dead login screen.
+      set({ user: null, session: null, establishment: null, isAuthenticated: false });
+      await get().initialize();
+      return;
+    }
     await supabase.auth.signOut();
     set({ user: null, session: null, establishment: null, isAuthenticated: false });
   },

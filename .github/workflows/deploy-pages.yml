@@ -1,0 +1,74 @@
+name: Deploy web preview to GitHub Pages
+
+on:
+  push:
+    branches: [master, claude/**]
+  workflow_dispatch:
+
+# Site lives at https://captainpglg-hue.github.io/fresh-core/ once
+# Pages is enabled (Repo Settings → Pages → Source = GitHub Actions).
+#
+# Build trick: we inject experiments.baseUrl = "/fresh-core" into app.json
+# at build time only — never committed — so Vercel keeps deploying at
+# domain root while Pages serves under the repo subpath.
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Inject baseUrl into app.json
+        run: |
+          node -e "
+            const fs = require('fs');
+            const c = JSON.parse(fs.readFileSync('app.json','utf8'));
+            c.expo.experiments = { ...(c.expo.experiments||{}), baseUrl: '/fresh-core' };
+            fs.writeFileSync('app.json', JSON.stringify(c, null, 2));
+          "
+
+      - name: Build web (uses real Supabase when secrets are set, demo mode otherwise)
+        run: npm run build:web
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+
+      - name: SPA fallback + Jekyll opt-out
+        run: |
+          cp dist/index.html dist/404.html
+          touch dist/.nojekyll
+
+      - name: Publish standalone landing page at /landing/
+        run: |
+          mkdir -p dist/landing
+          cp index.html dist/landing/index.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

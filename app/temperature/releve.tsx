@@ -52,22 +52,22 @@ function getEquipmentIcon(type: string): React.ReactNode {
 
 function getThresholdLabel(type: string): string {
   const threshold = THRESHOLDS[type];
-  if (!threshold) return 'Aucun seuil defini';
+  if (!threshold) return 'Aucun seuil défini';
   if (threshold.min !== undefined && threshold.max !== undefined) {
     return `Min ${threshold.min}°C / Max ${threshold.max}°C`;
   }
   if (threshold.max !== undefined) return `Seuil max : ${threshold.max}°C`;
   if (threshold.min !== undefined) return `Seuil min : ${threshold.min}°C`;
-  return 'Aucun seuil defini';
+  return 'Aucun seuil défini';
 }
 
 function getTypeLabel(type: string): string {
   const labels: Record<string, string> = {
     cold_positive: 'Chambre froide positive',
-    cold_negative: 'Chambre froide negative',
-    cold_positive_veg: 'Frigo legumes',
+    cold_negative: 'Chambre froide négative',
+    cold_positive_veg: 'Frigo légumes',
     cold_room: 'Chambre froide',
-    display_case: 'Vitrine refrigeree',
+    display_case: 'Vitrine réfrigérée',
     hot_holding: 'Maintien chaud',
     cooking: 'Cuisson',
     fryer: 'Friteuse',
@@ -85,10 +85,10 @@ export default function ReleveScreen() {
   }>();
 
   const equipmentId = params.equipmentId ?? '';
-  const equipmentName = params.name ?? 'Equipement';
+  const equipmentName = params.name ?? 'Équipement';
   const equipmentType = params.type ?? 'other';
 
-  const { readings, addReading, getReadingsForDate } = useTemperatureStore();
+  const { addReading, getReadingsForDate } = useTemperatureStore();
   const { establishment, user } = useAuthStore();
 
   const [step, setStep] = useState<Step>('ready');
@@ -169,7 +169,7 @@ export default function ReleveScreen() {
 
       if (compliant) {
         Alert.alert(
-          'Releve enregistre !',
+          'Relevé enregistré !',
           `${finalValue.toFixed(1)}°C - Conforme`,
           [{ text: 'OK', onPress: () => router.back() }],
         );
@@ -215,7 +215,7 @@ export default function ReleveScreen() {
       <CameraScreen
         onCapture={handleCapture}
         onClose={handleCameraClose}
-        guidanceText="Centrez le thermometre dans le cadre"
+        guidanceText="Centrez le thermomètre dans le cadre"
         showGuideRect
       />
     );
@@ -230,14 +230,14 @@ export default function ReleveScreen() {
         <View style={styles.processingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
           <Text variant="h2" style={styles.processingTitle}>
-            Lecture de la temperature en cours...
+            Lecture de la température en cours...
           </Text>
           <Text
             variant="body"
             color={Colors.textSecondary}
             style={styles.processingSubtitle}
           >
-            Analyse OCR de la photo du thermometre
+            Analyse OCR de la photo du thermomètre
           </Text>
         </View>
       </SafeAreaView>
@@ -295,7 +295,7 @@ export default function ReleveScreen() {
 
           <View style={styles.thresholdSection}>
             <Text variant="caption" color={Colors.textSecondary}>
-              SEUIL REGLEMENTAIRE
+              SEUIL RÉGLEMENTAIRE
             </Text>
             <Text variant="h3" color={Colors.primary}>
               {getThresholdLabel(equipmentType)}
@@ -307,7 +307,7 @@ export default function ReleveScreen() {
         {todayReadings.length > 0 && (
           <View style={styles.readingsSection}>
             <Text variant="h3" style={styles.sectionTitle}>
-              Releves du jour
+              Relevés du jour
             </Text>
             {todayReadings.map((reading) => (
               <Card key={reading.id} style={styles.readingMiniCard}>
@@ -340,7 +340,7 @@ export default function ReleveScreen() {
         {/* Big Camera CTA */}
         <View style={styles.ctaContainer}>
           <Button
-            title="Ouvrir la camera"
+            title="Ouvrir la caméra"
             onPress={() => setStep('camera')}
             variant="primary"
             size="lg"
@@ -352,7 +352,7 @@ export default function ReleveScreen() {
             color={Colors.textSecondary}
             style={styles.ctaHint}
           >
-            Photographiez l&apos;affichage du thermometre pour une lecture OCR
+            Photographiez l&apos;affichage du thermomètre pour une lecture OCR
             automatique
           </Text>
         </View>

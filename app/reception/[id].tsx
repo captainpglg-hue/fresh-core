@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Image, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '../../src/components/ui/Text';
@@ -7,6 +7,9 @@ import { Card } from '../../src/components/ui/Card';
 import { Badge } from '../../src/components/ui/Badge';
 import { Button } from '../../src/components/ui/Button';
 import { Header } from '../../src/components/ui/Header';
+import { PhotoViewer } from '../../src/components/ui/PhotoViewer';
+import { EmptyState } from '../../src/components/ui/EmptyState';
+import { Package, ShieldCheck } from 'lucide-react-native';
 import { Colors } from '../../src/constants/colors';
 import { getByIdLocal, getAllLocal } from '../../src/services/database';
 import { useSupplierStore } from '../../src/stores/supplierStore';
@@ -17,8 +20,8 @@ const STATUS_MAP: Record<
   { label: string; variant: 'success' | 'danger' | 'warning' | 'info' }
 > = {
   pending: { label: 'En cours', variant: 'warning' },
-  accepted: { label: 'Acceptee', variant: 'success' },
-  refused: { label: 'Refusee', variant: 'danger' },
+  accepted: { label: 'Acceptée', variant: 'success' },
+  refused: { label: 'Refusée', variant: 'danger' },
   partial: { label: 'Partielle', variant: 'info' },
 };
 
@@ -30,6 +33,13 @@ export default function ReceptionDetailScreen() {
   const [delivery, setDelivery] = useState<Delivery | null>(null);
   const [items, setItems] = useState<DeliveryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [previewUri, setPreviewUri] = useState<string | null>(null);
+  const [previewCaption, setPreviewCaption] = useState<string | undefined>();
+
+  const openPhoto = (uri: string, caption?: string) => {
+    setPreviewUri(uri);
+    setPreviewCaption(caption);
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -38,7 +48,19 @@ export default function ReceptionDetailScreen() {
         const d = await getByIdLocal<Delivery>('deliveries', id);
         setDelivery(d);
         const i = await getAllLocal<DeliveryItem>('delivery_items', 'delivery_id = ?', [id]);
-        setItems(i);
+        // photo_paths is stored as JSON-encoded TEXT in SQLite — parse back
+        // into the string[] the type promises.
+        const parsed = i.map((it) => {
+          if (typeof it.photo_paths === 'string') {
+            try {
+              return { ...it, photo_paths: JSON.parse(it.photo_paths) as string[] };
+            } catch {
+              return { ...it, photo_paths: null };
+            }
+          }
+          return it;
+        });
+        setItems(parsed);
       } catch {
         // Loading error
       } finally {
@@ -51,7 +73,7 @@ export default function ReceptionDetailScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <Header title="Detail reception" showBack onBack={() => router.back()} />
+        <Header title="Détail réception" showBack onBack={() => router.back()} />
         <View style={styles.centerContent}>
           <Text variant="body" color={Colors.textSecondary}>
             Chargement...
@@ -64,10 +86,10 @@ export default function ReceptionDetailScreen() {
   if (!delivery) {
     return (
       <SafeAreaView style={styles.container}>
-        <Header title="Detail reception" showBack onBack={() => router.back()} />
+        <Header title="Détail réception" showBack onBack={() => router.back()} />
         <View style={styles.centerContent}>
           <Text variant="h3" color={Colors.textSecondary}>
-            Reception introuvable
+            Réception introuvable
           </Text>
           <View style={styles.spacer} />
           <Button title="Retour" onPress={() => router.back()} variant="ghost" />
@@ -87,7 +109,7 @@ export default function ReceptionDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="Detail reception" showBack onBack={() => router.back()} />
+      <Header title="Détail réception" showBack onBack={() => router.back()} />
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Status + date */}
@@ -107,12 +129,12 @@ export default function ReceptionDetailScreen() {
             <Text variant="h3">{supplier.name}</Text>
             {supplier.sanitary_approval && (
               <Text variant="caption" color={Colors.textSecondary}>
-                Agrement: {supplier.sanitary_approval}
+                Agrément: {supplier.sanitary_approval}
               </Text>
             )}
             {supplier.contact_phone && (
               <Text variant="caption" color={Colors.textSecondary}>
-                Tel: {supplier.contact_phone}
+                Tél: {supplier.contact_phone}
               </Text>
             )}
           </Card>
@@ -124,11 +146,15 @@ export default function ReceptionDetailScreen() {
             <Text variant="caption" color={Colors.textSecondary} style={styles.sectionLabel}>
               BON DE LIVRAISON
             </Text>
-            <Image
-              source={{ uri: delivery.delivery_note_photo_path }}
-              style={styles.deliveryNotePhoto}
-              resizeMode="cover"
-            />
+            <Pressable
+              onPress={() => openPhoto(delivery.delivery_note_photo_path!, 'Bon de livraison')}
+            >
+              <Image
+                source={{ uri: delivery.delivery_note_photo_path }}
+                style={styles.deliveryNotePhoto}
+                resizeMode="cover"
+              />
+            </Pressable>
           </Card>
         )}
 
@@ -140,11 +166,15 @@ export default function ReceptionDetailScreen() {
             </Text>
             <Text variant="body">{delivery.refusal_reason}</Text>
             {delivery.refusal_photo_path && (
-              <Image
-                source={{ uri: delivery.refusal_photo_path }}
-                style={styles.refusalPhoto}
-                resizeMode="cover"
-              />
+              <Pressable
+                onPress={() => openPhoto(delivery.refusal_photo_path!, 'Photo du refus')}
+              >
+                <Image
+                  source={{ uri: delivery.refusal_photo_path }}
+                  style={styles.refusalPhoto}
+                  resizeMode="cover"
+                />
+              </Pressable>
             )}
           </Card>
         )}
@@ -152,12 +182,20 @@ export default function ReceptionDetailScreen() {
         {/* Products */}
         <View style={styles.productsHeader}>
           <Text variant="h2">
-            {items.length} produit{items.length > 1 ? 's' : ''} controle{items.length > 1 ? 's' : ''}
+            {items.length} produit{items.length > 1 ? 's' : ''} contrôlé{items.length > 1 ? 's' : ''}
           </Text>
           <Text variant="caption" color={Colors.textSecondary}>
             {conformeCount}/{items.length} conforme{conformeCount > 1 ? 's' : ''}
           </Text>
         </View>
+
+        {items.length === 0 ? (
+          <EmptyState
+            icon={<Package size={36} color={Colors.primary} />}
+            title="Aucun produit enregistré"
+            description="Cette réception n'a pas de produits détaillés. Elle a peut-être été refusée ou ajoutée sans détail produit."
+          />
+        ) : null}
 
         {items.map((item) => {
           const tempOk = item.temperature_compliant !== false;
@@ -213,12 +251,16 @@ export default function ReceptionDetailScreen() {
                   style={styles.photosRow}
                 >
                   {item.photo_paths.map((uri, idx) => (
-                    <Image
+                    <Pressable
                       key={`${item.id}-photo-${idx}`}
-                      source={{ uri }}
-                      style={styles.itemPhoto}
-                      resizeMode="cover"
-                    />
+                      onPress={() => openPhoto(uri, `${item.product_name} — photo ${idx + 1}`)}
+                    >
+                      <Image
+                        source={{ uri }}
+                        style={styles.itemPhoto}
+                        resizeMode="cover"
+                      />
+                    </Pressable>
                   ))}
                 </ScrollView>
               )}
@@ -226,9 +268,29 @@ export default function ReceptionDetailScreen() {
           );
         })}
 
+        {delivery.blockchain_hash ? (
+          <>
+            <View style={styles.bottomSpacer} />
+            <Button
+              title="Voir l'origine + QR consommateur"
+              onPress={() => router.push(`/origine/${delivery.id}`)}
+              variant="primary"
+              icon={<ShieldCheck size={16} color={Colors.white} />}
+              fullWidth
+            />
+          </>
+        ) : null}
+
         <View style={styles.bottomSpacer} />
         <Button title="Retour" onPress={() => router.back()} variant="ghost" fullWidth />
       </ScrollView>
+
+      <PhotoViewer
+        uri={previewUri}
+        visible={previewUri !== null}
+        caption={previewCaption}
+        onClose={() => setPreviewUri(null)}
+      />
     </SafeAreaView>
   );
 }

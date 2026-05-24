@@ -15,7 +15,7 @@ import { isCompliant, THRESHOLDS } from '../../src/constants/thresholds';
 import { Flame, Timer, ThermometerSun, ArrowLeft } from 'lucide-react-native';
 
 const COOKING_TYPES = [
-  { type: 'cooking_minced', label: 'Viande hachee', threshold: '>= 70\u00B0C' },
+  { type: 'cooking_minced', label: 'Viande hach\u00E9e', threshold: '>= 70\u00B0C' },
   { type: 'cooking_poultry', label: 'Volaille', threshold: '>= 74\u00B0C' },
   { type: 'cooking_pork_fish', label: 'Porc / Poisson', threshold: '>= 63\u00B0C' },
   { type: 'cooking_stuffed', label: 'Plat farci', threshold: '>= 70\u00B0C' },
@@ -35,7 +35,7 @@ export default function CuissonScreen() {
     if (establishment?.id) {
       loadRecords(establishment.id);
     }
-  }, [establishment?.id]);
+  }, [establishment?.id, loadRecords]);
 
   const handleCapture = async (uri: string) => {
     const result = await extractTemperature(uri);
@@ -92,8 +92,8 @@ export default function CuissonScreen() {
         <View style={styles.placeholder} />
       </View>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text variant="h2">Temperature de cuisson</Text>
-        <Text variant="caption" color={Colors.textSecondary}>Selectionnez le type de produit puis controle</Text>
+        <Text variant="h2">Température de cuisson</Text>
+        <Text variant="caption" color={Colors.textSecondary}>Sélectionnez le type de produit puis contrôle</Text>
 
         {COOKING_TYPES.map((ct) => (
           <Pressable
@@ -114,7 +114,7 @@ export default function CuissonScreen() {
         ))}
 
         <Text variant="h2" style={styles.sectionTitle}>Refroidissement rapide</Text>
-        <Text variant="caption" color={Colors.textSecondary}>De +63\u00B0C a +10\u00B0C en moins de 2h</Text>
+        <Text variant="caption" color={Colors.textSecondary}>De +63\u00B0C \u00E0 +10\u00B0C en moins de 2h</Text>
 
         {activeTimers.map((timer) => (
           <Card key={timer.id} style={styles.timerCard}>
@@ -122,7 +122,7 @@ export default function CuissonScreen() {
               <Timer size={20} color={Colors.primary} />
               <Text variant="h3">Refroidissement en cours</Text>
               <Badge
-                text={timer.status === 'active' ? 'En cours' : timer.status === 'completed' ? 'Termine' : 'Echec'}
+                text={timer.status === 'active' ? 'En cours' : timer.status === 'completed' ? 'Terminé' : 'Échec'}
                 variant={timer.status === 'active' ? 'warning' : timer.status === 'completed' ? 'success' : 'danger'}
               />
             </View>
@@ -149,7 +149,7 @@ export default function CuissonScreen() {
         ))}
 
         <Button
-          title="Demarrer un refroidissement"
+          title="Démarrer un refroidissement"
           onPress={() => startCoolingTimer('cooling')}
           variant="secondary"
         />

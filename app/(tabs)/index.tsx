@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
   Thermometer,
@@ -101,14 +101,23 @@ export default function DashboardScreen() {
                 Alertes urgentes
               </Text>
             </View>
-            {urgentAlerts.map((m) => (
-              <View key={m.name} style={styles.alertRow}>
-                <Badge text={m.name} variant="danger" />
-                <Text variant="caption" color={Colors.danger}>
-                  {m.alertMessage}
-                </Text>
-              </View>
-            ))}
+            {urgentAlerts.map((m) => {
+              const moduleIndex = dashboard.modules.findIndex((x) => x.name === m.name);
+              const route = MODULE_ROUTES[moduleIndex];
+              return (
+                <Pressable
+                  key={m.name}
+                  onPress={() => route && router.push(route)}
+                  style={({ pressed }) => [styles.alertRow, pressed && styles.alertPressed]}
+                >
+                  <Badge text={m.name} variant="danger" />
+                  <Text variant="caption" color={Colors.danger} style={styles.alertMessage}>
+                    {m.alertMessage}
+                  </Text>
+                  <ChevronRight size={14} color={Colors.danger} />
+                </Pressable>
+              );
+            })}
           </Card>
         )}
 
@@ -159,8 +168,8 @@ export default function DashboardScreen() {
                   <Text variant="h3">{module.name}</Text>
                   <Text variant="caption" color={Colors.textSecondary}>
                     {module.total > 0
-                      ? `${module.completed}/${module.total} completes`
-                      : 'Aucune donnee'}
+                      ? `${module.completed}/${module.total} complétés`
+                      : 'Aucune donnée'}
                   </Text>
                 </View>
 
@@ -241,6 +250,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     paddingLeft: 4,
+    paddingVertical: 4,
+  },
+  alertMessage: {
+    flex: 1,
+  },
+  alertPressed: {
+    opacity: 0.6,
   },
   // Progress card
   progressCard: {

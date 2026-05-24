@@ -24,7 +24,10 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "io.passcore.freshcore"
+      "package": "io.passcore.freshcore",
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -48,6 +51,19 @@
           "color": "#1B4332"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a1fd7802-bca8-42da-b7c2-07f5ab3bfefc"
+      }
+    },
+    "owner": "freshcore",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/a1fd7802-bca8-42da-b7c2-07f5ab3bfefc"
+    }
   }
 }

@@ -1,26 +1,11 @@
-import { Platform } from 'react-native';
+import { recognizeText } from './ocrEngine';
+
+export { recognizeText };
 
 interface TemperatureResult {
   value: number;
   confidence: number;
   rawText: string;
-}
-
-/**
- * Calls ML Kit text recognition on an image and returns the raw text.
- * Sur web, le module natif ML Kit n'est pas disponible : on throw une erreur
- * silencieuse que extractTemperature catch plus bas (→ null → saisie manuelle).
- */
-export async function recognizeText(imageUri: string): Promise<string> {
-  if (Platform.OS === 'web') {
-    throw new Error('OCR non disponible sur web — saisie manuelle uniquement');
-  }
-  // Lazy-load pour éviter que Metro n'essaie de bundler le module natif
-  // lors d'un build web.
-  const TextRecognition = (await import('@react-native-ml-kit/text-recognition'))
-    .default;
-  const result = await TextRecognition.recognize(imageUri);
-  return result.text;
 }
 
 /**
