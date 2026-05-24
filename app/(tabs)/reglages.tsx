@@ -74,8 +74,15 @@ export default function ReglagesScreen() {
     if (isDemoMode) {
       Alert.alert(
         'Mode démo',
-        "Tu es connecté(e) sur un compte de démonstration. Il n'y a pas de session à fermer — la déconnexion réelle sera disponible quand l'app sera connectée à un vrai compte Fresh-Core.",
-        [{ text: 'Compris', style: 'default' }],
+        'Mode démo — recharger un état neuf pour Marie Dupont ?',
+        [
+          { text: 'Annuler', style: 'cancel' },
+          {
+            text: 'Réinitialiser la démo',
+            style: 'destructive',
+            onPress: () => signOut(),
+          },
+        ],
       );
       return;
     }
@@ -152,7 +159,7 @@ export default function ReglagesScreen() {
             <View style={styles.rowInfo}>
               <Text variant="body">{establishment?.name || 'Non configuré'}</Text>
               <Text variant="caption" color={Colors.textSecondary}>
-                {establishment?.establishment_type || ''} {establishment?.city ? `\u2014 ${establishment.city}` : ''}
+                {establishment?.establishment_type || ''} {establishment?.city ? `— ${establishment.city}` : ''}
               </Text>
               {establishment?.siret && (
                 <Text variant="caption" color={Colors.textSecondary}>SIRET: {establishment.siret}</Text>
