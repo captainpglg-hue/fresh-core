@@ -2,13 +2,20 @@ import { create } from 'zustand';
 import { getAllLocal, insertLocal } from '../services/database';
 import type { CleaningTask, CleaningRecord } from '../types/database';
 
+// Liste alignée sur le seed démo (src/services/demoData.ts) : 8 tâches
+// couvrant les zones réglementaires HACCP les plus courantes. La même
+// liste sert de base pour la démo et pour tout nouvel établissement créé
+// hors démo, afin que l'UI dashboard (Nettoyage → "X/Y tâches") affiche
+// toujours le même dénominateur quel que soit le mode.
 const DEFAULT_TASKS = [
-  { zone: 'kitchen', zone_name: 'Plans de travail', frequency: 'per_service' as const },
-  { zone: 'cooking', zone_name: 'Equipements de cuisson', frequency: 'daily' as const },
-  { zone: 'cold_storage', zone_name: 'Chambres froides', frequency: 'weekly' as const },
-  { zone: 'sanitary', zone_name: 'Sanitaires', frequency: 'daily' as const },
-  { zone: 'floors', zone_name: 'Sols', frequency: 'per_service' as const },
-  { zone: 'dining', zone_name: 'Salle', frequency: 'per_service' as const },
+  { zone: 'cuisine', zone_name: 'Plans de travail', frequency: 'per_service' as const },
+  { zone: 'cuisine', zone_name: 'Équipements de cuisson', frequency: 'per_service' as const },
+  { zone: 'cuisine', zone_name: 'Sols cuisine', frequency: 'per_service' as const },
+  { zone: 'stockage', zone_name: 'Chambres froides', frequency: 'weekly' as const },
+  { zone: 'sanitaires', zone_name: 'Sanitaires', frequency: 'daily' as const },
+  { zone: 'cuisine', zone_name: 'Poubelles', frequency: 'daily' as const },
+  { zone: 'salle', zone_name: 'Tables et chaises', frequency: 'per_service' as const },
+  { zone: 'stockage', zone_name: 'Réserve sèche', frequency: 'weekly' as const },
 ];
 
 interface CleaningState {
