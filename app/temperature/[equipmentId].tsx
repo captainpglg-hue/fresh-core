@@ -104,14 +104,24 @@ export default function TemperatureEquipmentScreen() {
       });
 
       if (!compliant) {
+        // L'écran correctif attend `threshold` (valeur affichable) +
+        // `thresholdType` (clé THRESHOLDS) pour reconstruire la fiche.
+        // L'ancienne version envoyait thresholdMin/thresholdMax qui
+        // n'étaient lus nulle part : la fiche affichait "Non défini".
+        const thresholdDisplay =
+          threshold?.max !== undefined
+            ? String(threshold.max)
+            : threshold?.min !== undefined
+              ? String(threshold.min)
+              : '';
         router.replace({
           pathname: '/temperature/correctif',
           params: {
             equipmentId: currentEquipment.id,
             equipmentName: currentEquipment.name,
             temperature: String(finalValue),
-            thresholdMin: threshold?.min !== undefined ? String(threshold.min) : '',
-            thresholdMax: threshold?.max !== undefined ? String(threshold.max) : '',
+            threshold: thresholdDisplay,
+            thresholdType: currentEquipment.type,
           },
         });
       } else {
