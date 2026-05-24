@@ -216,8 +216,11 @@ export interface SyncQueueItem {
   operation: 'INSERT' | 'UPDATE' | 'DELETE';
   data: string;
   photo_paths: string | null;
-  status: 'pending' | 'synced' | 'error';
+  // 'error' is a transient state with a scheduled retry; 'failed' is
+  // terminal (max retries exhausted) and is never retried automatically.
+  status: 'pending' | 'synced' | 'error' | 'failed';
   retry_count: number;
+  next_retry_at: string | null;
   created_at: string;
   synced_at: string | null;
   error_message: string | null;

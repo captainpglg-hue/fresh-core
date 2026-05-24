@@ -237,10 +237,31 @@ export async function initDatabase(): Promise<void> {
       photo_paths TEXT,
       status TEXT DEFAULT 'pending',
       retry_count INTEGER DEFAULT 0,
+      next_retry_at TEXT,
       created_at TEXT DEFAULT (datetime('now')),
       synced_at TEXT,
       error_message TEXT
     );
+
+    -- Migrate older installs that pre-date next_retry_at. ALTER TABLE
+    -- is idempotent-friendly: we swallow the dup-column error so a
+    -- second app launch doesn't blow up.
+  `);
+
+  try {
+    await database.execAsync(
+      `ALTER TABLE sync_queue ADD COLUMN next_retry_at TEXT;`
+    );
+  } catch {
+    // column already exists — fine
+  }
+
+  await database.execAsync(`
+    -- Re-arm sync items that were marked 'error' before the retry/backoff
+    -- logic existed: without this, they'd stay stuck forever after upgrade.
+    UPDATE sync_queue
+       SET status = 'pending', next_retry_at = NULL
+     WHERE status = 'error' AND retry_count < 5;
   `);
 }
 
