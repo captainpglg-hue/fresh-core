@@ -15,7 +15,7 @@ import { syncManager } from '../../src/services/sync';
 import { updateLocal, getAllLocal } from '../../src/services/database';
 import { verifyChain } from '../../src/utils/hashChain';
 import type { Delivery, DeliveryItem } from '../../src/types/database';
-import { ArrowLeft, User, Building2, Wifi, WifiOff, FileText, Info, LogOut, ChevronRight, Pencil, X, ShieldCheck, ShieldAlert } from 'lucide-react-native';
+import { ArrowLeft, User, Building2, Wifi, WifiOff, FileText, Info, LogOut, ChevronRight, Pencil, X, ShieldCheck, ShieldAlert, AlertTriangle } from 'lucide-react-native';
 
 const NOTIF_PREF_KEYS = {
   temp: 'fc.notif.temp',
@@ -57,6 +57,27 @@ export default function ReglagesScreen() {
     | { ok: true; total: number }
     | { ok: false; total: number; firstBreakAt: string | null; reason: string | null }
   >(null);
+
+  // Compteur d'items "failed" (terminaux après épuisement du backoff).
+  // Sans cette UI ils restent invisibles à l'utilisateur sauf inspection
+  // SQLite. Rechargé après chaque sync forcée ou requeue manuel.
+  const [failedCount, setFailedCount] = useState(0);
+  const [requeuing, setRequeuing] = useState(false);
+
+  const refreshFailedCount = async () => {
+    try {
+      const stats = await syncManager.getStats();
+      setFailedCount(stats.failed);
+    } catch {
+      // Stats sont une lecture pure, mais en cas de panne SQLite on
+      // ne veut pas faire crasher Réglages.
+      setFailedCount(0);
+    }
+  };
+
+  useEffect(() => {
+    void refreshFailedCount();
+  }, [pendingCount, isSyncing]);
 
   // Load persisted toggle states (SecureStore) on mount.
   useEffect(() => {
@@ -104,6 +125,29 @@ export default function ReglagesScreen() {
 
   const handleForceSync = async () => {
     await syncManager.startSync();
+    void refreshFailedCount();
+  };
+
+  /**
+   * Bouton "Réessayer maintenant" : remet à 'pending' les items
+   * de sync_queue qui ont épuisé leur backoff (status='failed').
+   * Sans cette UI, requeueFailed() existait dans syncManager mais
+   * n'était jamais appelé — les items restaient bloqués à vie.
+   */
+  const handleRequeueFailed = async () => {
+    setRequeuing(true);
+    try {
+      const n = await syncManager.requeueFailed();
+      await refreshFailedCount();
+      Alert.alert('Sync', `${n} élément(s) remis en attente.`);
+    } catch (e) {
+      Alert.alert(
+        'Réessai impossible',
+        e instanceof Error ? e.message : 'Erreur inconnue',
+      );
+    } finally {
+      setRequeuing(false);
+    }
   };
 
   /**
@@ -284,6 +328,30 @@ export default function ReglagesScreen() {
             size="sm"
           />
         </Card>
+
+        {failedCount > 0 && (
+          <Card>
+            <View style={styles.row}>
+              <AlertTriangle size={20} color={Colors.danger} />
+              <View style={styles.rowInfo}>
+                <Text variant="body">
+                  {failedCount} élément(s) en échec définitif
+                </Text>
+                <Text variant="caption" color={Colors.textSecondary}>
+                  Backoff épuisé. Réessayez après avoir corrigé le problème
+                  (connectivité, identifiants…).
+                </Text>
+              </View>
+            </View>
+            <Button
+              title={requeuing ? 'Réessai...' : 'Réessayer maintenant'}
+              onPress={handleRequeueFailed}
+              variant="ghost"
+              loading={requeuing}
+              size="sm"
+            />
+          </Card>
+        )}
 
         <Text variant="h3" style={styles.sectionTitle}>Intégrité du journal</Text>
         <Card>
