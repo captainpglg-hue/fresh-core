@@ -78,6 +78,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0D1B2A;
 .modal{background:#1a2d3d;border-radius:20px 20px 0 0;padding:24px 20px;width:100%;max-width:500px;}
 .modal-title{font-size:18px;font-weight:700;margin-bottom:20px;}
 .modal-close{float:right;background:none;border:none;color:#64748B;font-size:22px;cursor:pointer;}
+.profile-card{background:#0F3D30;border:1px solid var(--teal-d);}
+.profile-row{display:flex;align-items:center;gap:14px;}
+.profile-icon-big{font-size:38px;flex-shrink:0;line-height:1;}
+.profile-info{flex:1;min-width:0;}
+.profile-fil{font-size:15px;font-weight:700;color:#fff;}
+.profile-maillon{font-size:11px;color:var(--teal);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+.profile-name{font-size:12px;color:#94A3B8;margin-top:6px;}
+.profile-edit{padding:8px 14px;background:#1E3A4A;color:var(--teal);border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -117,7 +125,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0D1B2A;
 <div id="app">
   <div class="app-header">
     <div>
-      <div class="app-logo">🐟 FRESH·CORE</div>
+      <div class="app-logo"><span id="app-logo-icon">🐟</span> FRESH·CORE</div>
       <div class="app-role" id="app-role-label">TRAÇABILITÉ</div>
     </div>
     <button class="app-settings" onclick="openSettings()">⚙️</button>
@@ -125,6 +133,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0D1B2A;
   <div class="app-content">
     <div class="success-banner" id="success-banner" style="display:none"></div>
     <div id="tab-accueil">
+      <div class="card profile-card" id="profile-card">
+        <div class="profile-row">
+          <div class="profile-icon-big" id="profile-icon">📦</div>
+          <div class="profile-info">
+            <div class="profile-fil" id="profile-fil">—</div>
+            <div class="profile-maillon" id="profile-maillon">—</div>
+            <div class="profile-name" id="profile-name" style="display:none"></div>
+          </div>
+          <button class="profile-edit" onclick="editProfil()">Modifier</button>
+        </div>
+      </div>
       <div class="stats-row">
         <div class="stat-box"><div class="stat-n" id="count-lots">0</div><div class="stat-l">LOTS</div></div>
         <div class="stat-box"><div class="stat-n" id="count-temps">0</div><div class="stat-l">RELEVÉS</div></div>
@@ -210,8 +229,11 @@ function obErr(s,msg){const e=document.getElementById(`ob-err${s}`);if(!e)return
 function obNext(s){if(s===1&&!obSel.filiere){obErr(1,'⚠️ Sélectionnez une filière avant de continuer');return;}if(s===2&&!obSel.maillon){obErr(2,'⚠️ Sélectionnez votre rôle avant de continuer');return;}document.getElementById(`ob-step${s}`).style.display='none';document.getElementById(`ob-step${s+1}`).style.display='block';document.getElementById(`dot${s-1}`).className='ob-dot done';document.getElementById(`dot${s}`).className='ob-dot active';}
 function obBack(s){document.getElementById(`ob-step${s+1}`).style.display='none';document.getElementById(`ob-step${s}`).style.display='block';document.getElementById(`dot${s}`).className='ob-dot';document.getElementById(`dot${s-1}`).className='ob-dot active';}
 function obFinish(){const p={filiere:obSel.filiere,maillon:obSel.maillon,nom:document.getElementById('ob-nom').value,etablissement:document.getElementById('ob-etablissement').value,created_at:new Date().toISOString()};try{setData('profil',p);}catch(e){}saveDB('profils',p).catch(()=>{});lancerApp(p);}
-function lancerApp(p){try{document.getElementById('onboarding').style.display='none';document.getElementById('app').style.display='flex';const maillonLabel=(p.maillon||'utilisateur').toUpperCase();document.getElementById('app-role-label').textContent=(p.nom?p.nom+' · ':'')+maillonLabel;document.getElementById('settings-profil').textContent=(p.filiere||'—')+' · '+(p.maillon||'—')+(p.etablissement?' · '+p.etablissement:'');initNettoyage();updateStats();renderLots();renderTemps();renderDLC();document.getElementById('dlc-date').valueAsDate=new Date();}catch(e){alert('Erreur au lancement: '+e.message);}}
-function switchTab(t){['accueil','lot','temp','nettoyage','dlc'].forEach(x=>{document.getElementById('tab-'+x).style.display=x===t?'block':'none';document.getElementById('nav-'+x)?.classList.toggle('active',x===t);});if(t==='accueil'){updateStats();renderLots();}if(t==='lot')renderLots();if(t==='temp')renderTemps();if(t==='dlc')renderDLC();if(t==='nettoyage')renderNettoyage();}
+function lancerApp(p){try{document.getElementById('onboarding').style.display='none';document.getElementById('app').style.display='flex';const maillonLabel=(p.maillon||'utilisateur').toUpperCase();document.getElementById('app-role-label').textContent=(p.nom?p.nom+' · ':'')+maillonLabel;document.getElementById('settings-profil').textContent=(p.filiere||'—')+' · '+(p.maillon||'—')+(p.etablissement?' · '+p.etablissement:'');renderAppLogo(p);initNettoyage();updateStats();renderLots();renderTemps();renderDLC();renderProfileCard();document.getElementById('dlc-date').valueAsDate=new Date();}catch(e){alert('Erreur au lancement: '+e.message);}}
+function renderAppLogo(p){const fil=FILIERES.find(f=>f.id===p?.filiere);document.getElementById('app-logo-icon').textContent=fil?.icon||'🐟';}
+function renderProfileCard(){const p=getData('profil',null);if(!p)return;const fil=FILIERES.find(f=>f.id===p.filiere);const list=MAILLONS[p.filiere]||MAILLONS.default;const mai=list.find(m=>m.id===p.maillon);document.getElementById('profile-icon').textContent=fil?.icon||'📦';document.getElementById('profile-fil').textContent=fil?.label||'—';document.getElementById('profile-maillon').textContent=(mai?.label||p.maillon||'—').toUpperCase();const nameEl=document.getElementById('profile-name');const parts=[p.nom,p.etablissement].filter(Boolean);if(parts.length){nameEl.textContent=parts.join(' · ');nameEl.style.display='block';}else{nameEl.style.display='none';}}
+function editProfil(){if(confirm('Modifier votre profil ? Vos lots, relevés et tâches restent enregistrés.')){localStorage.removeItem('fc_profil');location.reload();}}
+function switchTab(t){['accueil','lot','temp','nettoyage','dlc'].forEach(x=>{document.getElementById('tab-'+x).style.display=x===t?'block':'none';document.getElementById('nav-'+x)?.classList.toggle('active',x===t);});if(t==='accueil'){updateStats();renderLots();renderProfileCard();}if(t==='lot')renderLots();if(t==='temp')renderTemps();if(t==='dlc')renderDLC();if(t==='nettoyage')renderNettoyage();}
 function showBanner(msg,err=false){const b=document.getElementById('success-banner');b.textContent=msg;b.style.display='block';b.style.background=err?'#3B0D0D':'#0F3D30';b.style.color=err?'#F87171':'var(--teal)';setTimeout(()=>b.style.display='none',3000);}
 function genLotId(){const d=new Date();const date=d.getFullYear()+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);const n=getData('lots',[]).filter(l=>l.lot_id?.includes(date)).length;return `PEB-${date}-${String(n+1).padStart(3,'0')}`;}
 async function hashLot(data){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(data)));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
