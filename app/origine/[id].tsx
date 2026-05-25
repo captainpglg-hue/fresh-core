@@ -8,7 +8,9 @@ import { Text } from '../../src/components/ui/Text';
 import { Card } from '../../src/components/ui/Card';
 import { Badge } from '../../src/components/ui/Badge';
 import { Colors } from '../../src/constants/colors';
-import { supabase } from '../../src/services/supabase';
+import { supabase, isDemoMode } from '../../src/services/supabase';
+import { getAllLocal } from '../../src/services/database';
+import type { Delivery, DeliveryItem, Supplier, Establishment } from '../../src/types/database';
 
 type OrigineItem = {
   id: string;
@@ -66,6 +68,78 @@ export default function OrigineScreen() {
     let cancelled = false;
     (async () => {
       try {
+        if (isDemoMode) {
+          // En mode démo, Supabase n'est pas joignable : on recompose
+          // le même shape JSON que la RPC `get_origine` en lisant le
+          // SQLite local (seedé par src/services/demoData.ts avec
+          // local_id = "del-meat-001" et "del-fish-001").
+          const deliveries = await getAllLocal<Delivery>(
+            'deliveries',
+            'id = ? OR local_id = ?',
+            [id, id],
+          );
+          const delivery = deliveries[0];
+          if (!delivery) {
+            if (!cancelled) setData(null);
+            return;
+          }
+          const itemsRaw = await getAllLocal<DeliveryItem>(
+            'delivery_items',
+            'delivery_id = ?',
+            [delivery.id],
+          );
+          let supplier: Supplier | null = null;
+          if (delivery.supplier_id) {
+            const suppliers = await getAllLocal<Supplier>(
+              'suppliers',
+              'id = ?',
+              [delivery.supplier_id],
+            );
+            supplier = suppliers[0] ?? null;
+          }
+          const establishments = await getAllLocal<Establishment>(
+            'establishments',
+            'id = ?',
+            [delivery.establishment_id],
+          );
+          const establishment = establishments[0] ?? null;
+
+          const payload: OriginePayload = {
+            delivery: {
+              id: delivery.id,
+              local_id: delivery.local_id,
+              delivery_date: delivery.delivery_date,
+              recorded_at: delivery.recorded_at,
+              status: delivery.status,
+              blockchain_hash: delivery.blockchain_hash,
+            },
+            supplier: supplier
+              ? { name: supplier.name, sanitary_approval: supplier.sanitary_approval }
+              : null,
+            establishment: establishment
+              ? { name: establishment.name, city: establishment.city }
+              : null,
+            items: itemsRaw.map((it) => ({
+              id: it.id,
+              product_name: it.product_name,
+              category: it.category,
+              temperature: it.temperature,
+              // SQLite stocke les booléens en INTEGER 0/1 → on
+              // normalise pour le rendu.
+              temperature_compliant:
+                it.temperature_compliant === null || it.temperature_compliant === undefined
+                  ? null
+                  : Boolean(it.temperature_compliant),
+              dlc: it.dlc,
+              lot_number: it.lot_number,
+              packaging_ok: Boolean(it.packaging_ok),
+              visual_ok: Boolean(it.visual_ok),
+            })),
+          };
+          if (!cancelled) setData(payload);
+          return;
+        }
+
         const { data: rpcData, error: rpcError } = await supabase.rpc('get_origine', { p_id: id });
         if (cancelled) return;
         if (rpcError) {
