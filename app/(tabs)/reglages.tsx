@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView, Pressable, Switch, Alert, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from '../../src/services/secureStorage';
 import { Text } from '../../src/components/ui/Text';
 import { Card } from '../../src/components/ui/Card';
 import { Button } from '../../src/components/ui/Button';
