@@ -10,6 +10,9 @@ interface SyncStats {
   pending: number;
   synced: number;
   error: number;
+  // 'failed' = terminal state after MAX_RETRIES (cf. SyncManager). Optional
+  // so legacy call sites that pass {pending,synced,error,total} still typecheck.
+  failed?: number;
   total: number;
 }
 

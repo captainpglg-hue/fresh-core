@@ -124,11 +124,11 @@ export default function TracabiliteScreen() {
               <View style={styles.productInfo}>
                 <Text variant="h3">{product.product_name}</Text>
                 <Text variant="caption" color={Colors.textSecondary}>
-                  {product.category || 'Non cat\u00e9goris\u00e9'} {product.lot_number ? `\u2014 Lot: ${product.lot_number}` : ''}
+                  {product.category || 'Non catégorisé'} {product.lot_number ? `— Lot: ${product.lot_number}` : ''}
                 </Text>
                 <Text variant="caption" color={Colors.textSecondary}>
-                  DLC: {product.dlc_secondary || product.dlc_primary || 'Non renseign\u00e9e'}
-                  {product.status === 'opened' ? ' (entam\u00e9)' : ''}
+                  DLC: {product.dlc_secondary || product.dlc_primary || 'Non renseignée'}
+                  {product.status === 'opened' ? ' (entamé)' : ''}
                 </Text>
               </View>
               <View style={styles.productActions}>
@@ -149,8 +149,23 @@ export default function TracabiliteScreen() {
         ))}
       </ScrollView>
 
-      <Pressable style={styles.fab} onPress={() => setShowAddModal(true)}>
+      {/*
+        FAB principal: ouvre l'écran complet "/produit/ajouter" (formulaire
+        riche avec OCR et fournisseur). L'ancienne modal inline "rapide"
+        reste accessible via le bouton secondaire ci-dessous pour les cas
+        où l'utilisateur veut juste taper 3 champs sans quitter l'onglet.
+      */}
+      <Pressable style={styles.fab} onPress={() => router.push('/produit/ajouter')}>
         <Plus size={28} color={Colors.white} />
+      </Pressable>
+      <Pressable
+        style={styles.fabSecondary}
+        onPress={() => setShowAddModal(true)}
+        accessibilityLabel="Ajout rapide"
+      >
+        <Text variant="caption" color={Colors.white} style={styles.fabSecondaryLabel}>
+          Rapide
+        </Text>
       </Pressable>
 
       <Modal visible={showAddModal} animationType="slide" transparent>
@@ -160,7 +175,7 @@ export default function TracabiliteScreen() {
             <Input label="Nom du produit" value={name} onChangeText={setName} placeholder="Ex: Filet de poulet" />
             <Input label="Catégorie" value={category} onChangeText={setCategory} placeholder="Ex: viande, laitier..." />
             <Input label="DLC (AAAA-MM-JJ)" value={dlc} onChangeText={setDlc} placeholder="Ex: 2026-04-10" />
-            <Input label="N\u00B0 de lot" value={lot} onChangeText={setLot} placeholder="Optionnel" />
+            <Input label="N° de lot" value={lot} onChangeText={setLot} placeholder="Optionnel" />
             <View style={styles.modalButtons}>
               <Button title="Ajouter" onPress={handleAdd} />
               <Button title="Annuler" onPress={() => setShowAddModal(false)} variant="ghost" />
@@ -220,6 +235,8 @@ const styles = StyleSheet.create({
   actionButtons: { flexDirection: 'row', gap: 8 },
   actionBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.background, justifyContent: 'center', alignItems: 'center' },
   fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.accent, justifyContent: 'center', alignItems: 'center', elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4 },
+  fabSecondary: { position: 'absolute', bottom: 36, right: 88, paddingHorizontal: 12, height: 32, borderRadius: 16, backgroundColor: Colors.primary, justifyContent: 'center', alignItems: 'center', elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.2, shadowRadius: 3 },
+  fabSecondaryLabel: { fontWeight: '600' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: Colors.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, gap: 16 },
   modalButtons: { gap: 8 },
